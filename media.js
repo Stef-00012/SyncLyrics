@@ -209,7 +209,7 @@ if (["--trackid", "-tid"].some((arg) => process.argv.includes(arg))) {
 }
 
 if (["--cover", "-c"].some((arg) => process.argv.includes(arg))) {
-	const metadata = fetchPlayerctl();
+	const metadata = fetchPlayerctl(false);
 
 	if (!metadata) {
 		outputLog();
@@ -650,10 +650,15 @@ function getPlayer(skipPaused = true) {
 	for (const player of playersList) {
 		if (!skipPaused) return player;
 
-		const isPlaying =
-			execSync(`playerctl -p ${player} status`).toString().trim() === "Playing";
+		try {
+			const isPlaying =
+				execSync(`playerctl -p ${player} status`).toString().trim() ===
+				"Playing";
 
-		if (!isPlaying) continue;
+			if (!isPlaying) continue;
+		} catch (e) {
+			continue;
+		}
 
 		return player;
 	}
