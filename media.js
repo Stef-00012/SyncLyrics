@@ -209,7 +209,7 @@ if (["--trackid", "-tid"].some((arg) => process.argv.includes(arg))) {
 }
 
 if (["--cover", "-c"].some((arg) => process.argv.includes(arg))) {
-	const metadata = fetchPlayerctl(false);
+	const metadata = getPlayer(false);
 
 	if (!metadata) {
 		outputLog();
@@ -708,11 +708,11 @@ function debugLog(...args) {
 function fetchPlayerctl() {
 	const player = getPlayer();
 
-	if (!player) {
-		deleteIcon();
+	const fullPlayer = getPlayer(false);
 
-		return null;
-	}
+	if (!fullPlayer) deleteIcon();
+
+	if (!player) return null;
 
 	let rawMetadata;
 
