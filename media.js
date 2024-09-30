@@ -2,13 +2,6 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { execSync } = require("node:child_process");
 
-const templat = JSON.stringify({
-	text: "{{text}}",
-	alt: "{{icon}}",
-	class: "{{class}}",
-	tooltip: "{{tooltip}}",
-});
-
 const noLyrics = JSON.stringify({
 	text: "No Lyrics Avaible",
 	alt: "none",
@@ -150,6 +143,8 @@ if (["--show-cover", "-sc"].some((arg) => process.argv.includes(arg))) {
 	if (["--save", "-s"].some((arg) => process.argv.includes(arg))) {
 		const metadata = fetchPlayerctl();
 
+		if (!metadata) process.exit(0);
+
 		const downloadFolder = path.join(
 			process.env.HOME,
 			"Downloads",
@@ -216,7 +211,7 @@ if (["--trackid", "-tid"].some((arg) => process.argv.includes(arg))) {
 if (["--cover", "-c"].some((arg) => process.argv.includes(arg))) {
 	const metadata = fetchPlayerctl();
 
-	if (!metadata || !metadata.playing) {
+	if (!metadata) {
 		outputLog();
 
 		process.exit(0);
