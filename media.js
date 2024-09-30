@@ -14,30 +14,30 @@ const noLyrics = JSON.stringify({
 	alt: "none",
 	class: "paused",
 	tooltip: "none",
-})
+});
 
 const noSong = JSON.stringify({
 	text: "No Song Playing",
 	alt: "none",
 	class: "paused",
 	tooltip: "none",
-})
+});
 
 const noMedia = JSON.stringify({
 	text: "No Media Playing",
 	alt: "none",
 	class: "none",
 	tooltip: "none",
-})
+});
 
 const configFolder =
 	process.env.CONFIG_FOLDER ||
 	path.join(process.env.HOME, ".config", "syncLyrics");
 
-if (configFolder.startsWith('./')) {
-	outputLog('\x1b[31mConfig folder must be an absolute path')
+if (configFolder.startsWith("./")) {
+	outputLog("\x1b[31mConfig folder must be an absolute path");
 
-	process.exit(0)
+	process.exit(0);
 }
 
 const configFile = path.join(configFolder, "config.json");
@@ -116,9 +116,10 @@ if (["--show-lyrics", "-sl"].some((arg) => process.argv.includes(arg))) {
 				"syncLyric",
 			);
 
-			if (!fs.existsSync(downloadFolder)) fs.mkdirSync(downloadFolder, {
-				recursive: true
-			});
+			if (!fs.existsSync(downloadFolder))
+				fs.mkdirSync(downloadFolder, {
+					recursive: true,
+				});
 
 			const fileName = `${metadata.track.replaceAll(" ", "_")}-${metadata.artist.replaceAll(" ", "_")}.txt`;
 
@@ -141,13 +142,13 @@ if (["--show-lyrics", "-sl"].some((arg) => process.argv.includes(arg))) {
 	})();
 }
 
-if (['--show-cover', '-sc'].some(arg => process.argv.includes(arg))) {
-	const iconPath = config.iconPath || path.join(configFolder, "icon.png")
-	
-	if (!fs.existsSync(iconPath)) return process.exit(0)
+if (["--show-cover", "-sc"].some((arg) => process.argv.includes(arg))) {
+	const iconPath = config.iconPath || path.join(configFolder, "icon.png");
+
+	if (!fs.existsSync(iconPath)) process.exit(0);
 
 	if (["--save", "-s"].some((arg) => process.argv.includes(arg))) {
-		const metadata = fetchPlayerctl()
+		const metadata = fetchPlayerctl();
 
 		const downloadFolder = path.join(
 			process.env.HOME,
@@ -155,24 +156,25 @@ if (['--show-cover', '-sc'].some(arg => process.argv.includes(arg))) {
 			"syncLyric",
 		);
 
-		if (!fs.existsSync(downloadFolder)) fs.mkdirSync(downloadFolder, {
-			recursive: true
-		});
+		if (!fs.existsSync(downloadFolder))
+			fs.mkdirSync(downloadFolder, {
+				recursive: true,
+			});
 
 		const fileName = `${metadata.track.replaceAll(" ", "_")}-${metadata.artist.replaceAll(" ", "_")}.png`;
 
-		const filePath = path.join(downloadFolder, fileName); 
+		const filePath = path.join(downloadFolder, fileName);
 
-		fs.copyFileSync(iconPath, filePath)
+		fs.copyFileSync(iconPath, filePath);
 
 		execSync(`xdg-open ${filePath}`);
 
 		process.exit(0);
 	}
 
-	execSync(`xdg-open ${iconPath}`)
+	execSync(`xdg-open ${iconPath}`);
 
-	process.exit(0)
+	process.exit(0);
 }
 
 if (["--play-toggle", "-pt"].some((arg) => process.argv.includes(arg))) {
@@ -211,18 +213,18 @@ if (["--trackid", "-tid"].some((arg) => process.argv.includes(arg))) {
 	process.exit(0);
 }
 
-if (['--cover', '-c'].some(arg => process.argv.includes(arg))) {
-	const metadata = fetchPlayerctl()
+if (["--cover", "-c"].some((arg) => process.argv.includes(arg))) {
+	const metadata = fetchPlayerctl();
 
 	if (!metadata || !metadata.playing) {
-		outputLog()
+		outputLog();
 
-		process.exit(0)
-	};
+		process.exit(0);
+	}
 
-	outputLog(config.iconPath || path.join(configFolder, "icon.png"))
+	outputLog(config.iconPath || path.join(configFolder, "icon.png"));
 
-	process.exit(0)
+	process.exit(0);
 }
 
 if (["--artist", "-a"].some((arg) => process.argv.includes(arg))) {
@@ -399,14 +401,12 @@ async function returnArtist() {
 
 	const data = marquee(`${metadata.artist}`);
 
-	
-	
 	const output = JSON.stringify({
 		text: escapeMarkup(data),
 		alt: "playing",
 		class: `perc${metadata.percentage}-0`,
 		tooltip: tooltip,
-	})
+	});
 
 	outputLog(output);
 }
@@ -426,9 +426,9 @@ async function returnLyrics() {
 	const output = JSON.stringify({
 		text: escapeMarkup(lyricsData.current),
 		alt: "lyrics",
-		class: `none`,
+		class: "none",
 		tooltip: tooltip,
-	})
+	});
 
 	outputLog(output);
 }
@@ -470,7 +470,7 @@ async function returnName() {
 		alt: "playing",
 		class: `perc${metadata.percentage}-0`,
 		tooltip: tooltip,
-	})
+	});
 
 	outputLog(output);
 }
@@ -517,7 +517,7 @@ async function returnData() {
 		alt: "playing",
 		class: `perc${metadata.percentage}-0`,
 		tooltip: tooltip,
-	})
+	});
 
 	outputLog(output);
 }
@@ -700,8 +700,9 @@ function debugLog(...args) {
 	if (
 		config.debug ||
 		process.env.DEBUG?.toLowerCase() === "true" ||
-		process.argv.includes('--debug')
-	) console.debug("\x1b[35;1mDEBUG:\x1b[0m", ...args);
+		process.argv.includes("--debug")
+	)
+		console.debug("\x1b[35;1mDEBUG:\x1b[0m", ...args);
 }
 
 function fetchPlayerctl() {
@@ -717,22 +718,20 @@ function fetchPlayerctl() {
 
 	try {
 		const args = [
-			'artist',
-			'album',
-			'title',
-			'mpris:trackid',
-			'mpris:length',
-			'mpris:artUrl',
-			'status',
-			'volume',
-			'position'
+			"artist",
+			"album",
+			"title",
+			"mpris:trackid",
+			"mpris:length",
+			"mpris:artUrl",
+			"status",
+			"volume",
+			"position",
 		]
-			.map(arg => `{{${arg}}}`)
-			.join('||||')
+			.map((arg) => `{{${arg}}}`)
+			.join("||||");
 
-		rawMetadata = execSync(
-			`playerctl metadata -p ${player} --format "${args}"`,
-		)
+		rawMetadata = execSync(`playerctl metadata -p ${player} --format "${args}"`)
 			.toString()
 			.trim()
 			.split("||||");
@@ -763,7 +762,7 @@ function fetchPlayerctl() {
 		iconUrl: rawMetadata[5],
 		playing: rawMetadata[6] === "Playing",
 		volume: Number.parseInt(rawMetadata[7] * 100),
-		currentMs: (Number.parseFloat(rawMetadata[8]) / 1000) + 1,
+		currentMs: Number.parseFloat(rawMetadata[8]) / 1000 + 1,
 	};
 
 	if (!metadata.playing) deleteIcon();
@@ -801,10 +800,10 @@ function updateConfig() {
 		process.exit(0);
 	}
 
-	if (newConfig.iconPath?.startsWith('./')) {
-		outputLog("\x1b[31mconfig.iconPath must be an absolute path")
+	if (newConfig.iconPath?.startsWith("./")) {
+		outputLog("\x1b[31mconfig.iconPath must be an absolute path");
 
-		process.exit(0)
+		process.exit(0);
 	}
 
 	if (
