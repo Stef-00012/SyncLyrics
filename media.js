@@ -760,8 +760,6 @@ function fetchPlayerctl() {
 		currentMs: Number.parseFloat(rawMetadata[8]) / 1000 + 1,
 	};
 
-	if (!metadata.playing) deleteIcon();
-
 	const metadataTrackId = metadata.trackId.split("/").pop();
 
 	if (metadata.playing && currentTrackId !== metadataTrackId) {
