@@ -18,20 +18,22 @@ Just clone this repository
 
 ### Flags
 
+- `--volume-down`, `-vol-`: Decreases the player's volume by 1%.
+- `--play-toggle`, `-pt`: Plays or pauses the player.
+- `--show-lyrics`, `-sl`: Saves the lyrics in a temporary file (`/tmp/lyrics.txt`) and opens the file (when combined with `--save` or `-s` it saves the lyrics in a permanent file, `~/Downloads/syncLyrics/<song_name>-<artist_name>.txt`).
+- `--show-cover`, `-sc`: Opens the song's icon in your system default image viewer (when combined with `--save` or `-s` it saves the icon in a permanent file, `~/Downloads/syncLyrics/<song_name>-<artist_name>.png`).
+- `--volume-up`, `-vol+`: Increases the player's volume by 1%.
 - `--trackid`, `-tid`: Returns the song ID (required for local lyrics).
+- `--artist`, `-a`: Returns the artist name. `*`
+- `--cover`, `-c`: Returns the absolute path to the song's icon image.
 - `--data`, `-d`: Returns the song name and artist. `*`
 - `--name`, `-n`: Returns the song name. `*`
-- `--artist`, `-a`: Returns the artist name. `*`
-- `--show-lyrics`, `-sl`: Saves the lyrics in a temporary file (`/tmp/lyrics.txt`) and opens the file (when combined with `--save` or `-s` it saves the lyrics in a permanent file, `~/Downloads/syncLyrics/<song_name>-<artist_name>.txt`).
-- `--play-toggle` or `-pt`: Plays or pauses the player.
-- `--volume-up` or `-vol+`: Increases the player's volume by 1%.
-- `--volume-down` or `-vol-`: Decreases the player's volume by 1%.
 
 `*` Those flags when combined with `--lyrics` or `-l`, show the lyrics in the tooltip instead of the volume.
 
 ## Config
 
-Default config folder is `~/.config/syncLyrics`, this can be changed by running the script as `CONFIG_FOLDER=/path/to/folder node media.js`.<br />
+Default config folder is `~/.config/syncLyrics`, this can be changed by running the script as `CONFIG_FOLDER=/path/to/folder node media.js` (`CONFIG_FOLDER` must be an absolute path).<br />
 The config are read from a file `config.json` inside the config folder (create it if it doesn't exist).
 
 The avaible options are:
@@ -42,7 +44,8 @@ The avaible options are:
 - `marqueeMinLength` (Number): Minimum length before the output of `--data`, `-d`, `--name`, `-n`, `--artist` and `-a` becomes a marquee (Scrolling text).
 - `ignoredPlayers` (Array\<String>): List of players that will never be used by the script.
 - `favoritePlayers` (Array\<String>): List of players that will be prioritized over others.
-- `hatedPlayers` (Array\<String>): Opposite of `favoritePlayers`
+- `hatedPlayers` (Array\<String>): Opposite of `favoritePlayers`.
+- `iconPath` (String): File path the song's icon will be stored in (must be an absolute path).
 
 ### Example Config
 
@@ -61,7 +64,8 @@ The avaible options are:
     "favoritePlayers": [
         "spotify"
     ],
-    "hatedPlayers": []
+    "hatedPlayers": [],
+    "iconPath": null
 }
 ```
 
@@ -69,9 +73,17 @@ The avaible options are:
 
 This example uses has the `media.js` file located in `~/.config/custom-commands/media.js`
 
-```json
+```jsonc
 {
-    "custom/song": {
+    "image": {
+		"interval": 1,
+		// "size": 26, // (change based on your liking)
+		"exec": "node ~/.config/custom-commands/media.js --cover",
+		"on-click": "node ~/.config/custom-commands/media.js --show-cover",
+		"tooltip": false
+	},
+
+	"custom/song": {
 		"tooltip": true,
 		"format": "{icon} {}",
 		"format-icons": {
@@ -80,9 +92,10 @@ This example uses has the `media.js` file located in `~/.config/custom-commands/
 		},
 		"return-type": "json",
 		"exec-if": "if [ -f ~/.config/custom-commands/media.js ]; then exit 0; else exit 1; fi",
-		"restart-interval": 30,
+		"restart-interval": 5,
 		"exec": "node ~/.config/custom-commands/media.js --data",
 		"on-click": "node ~/.config/custom-commands/media.js --play-toggle",
+		"on-click-middle": "pgrep -x 'spotify' > /dev/null && wmctrl -a 'Spotify' || spotify &",
 		"on-scroll-up": "node ~/.config/custom-commands/media.js --volume-up",
 		"on-scroll-down": "node ~/.config/custom-commands/media.js --volume-down",
 		"escape": true,
@@ -92,14 +105,13 @@ This example uses has the `media.js` file located in `~/.config/custom-commands/
 	"custom/lyrics": {
 		"tooltip": true,
 		"format": "{icon} {}",
-		"format-alt": "",
 		"format-icons": {
 			"lyrics": "󰲹 ",
 			"none": "󰐓 "
 		},
 		"return-type": "json",
 		"exec-if": "if [ -f ~/.config/custom-commands/media.js ]; then exit 0; else exit 1; fi",
-		"restart-interval": 30,
+		"restart-interval": 5,
 		"exec": "node ~/.config/custom-commands/media.js",
 		"on-click-middle": "node ~/.config/custom-commands/media.js --show-lyrics",
 		"escape": true,
@@ -111,62 +123,11 @@ This example uses has the `media.js` file located in `~/.config/custom-commands/
 
 ### Song Name Progress
 
-You can show the progress bar in the `custom/song` module by adding this CSS to your waybar's CSS:
+You can show the progress bar in the `custom/song` module by adding some CSS to your waybar's CSS.<br/>
+You can generate the CSS by running `node progress.js <module-name> <active-color> <background-color>`.
 
-```css
-#custom-song.perc0-0 {
-    background-image: linear-gradient(
-    to right,
-    #a6e3a1 0.0%,
-    #80c47a 0.1%
-    );
-}
-
-#custom-song.perc1-0 {
-    background-image: linear-gradient(
-    to right,
-    #a6e3a1 1.0%,
-    #80c47a 1.1%
-    );
-}
-
-#custom-song.perc2-0 {
-    background-image: linear-gradient(
-    to right,
-    #a6e3a1 2.0%,
-    #80c47a 2.1%
-    );
-}
-
-/* 
-    Do the same with all the classes from #custom-song.perc3-0 to #custom-song.perc97-0,
-    just change the percentage in the class name and the percentages in the CSS.
-*/
-
-#custom-song.perc98-0 {
-    background-image: linear-gradient(
-    to right,
-    #a6e3a1 98.0%,
-    #80c47a 98.1%
-    );
-}
-
-#custom-song.perc99-0 {
-    background-image: linear-gradient(
-    to right,
-    #a6e3a1 99.0%,
-    #80c47a 99.1%
-    );
-}
-
-#custom-song.perc100-0 {
-    background-image: linear-gradient(
-    to right,
-    #a6e3a1 100.0%,
-    #80c47a 100.1%
-    );
-}
-```
+For example if you module is `custom/song`, you want as active color `#123456` and and background color `#abcdef`, the command will be `node progress.js song #123456 #abcdef`.<br />
+This script will create a `style.css` file with the generated CSS, just paste the generated CSS inside you waybar's CSS config.
 
 ## Local Lyrics
 
