@@ -505,7 +505,7 @@ async function returnData() {
 	if (metadata.track)
 		text = text.length > 0 ? `${text} - ${metadata.track}` : metadata.track;
 
-	const data = marquee(`${metadata.artist} - ${metadata.track}`);
+	const data = marquee(text);
 
 	const output = JSON.stringify({
 		text: escapeMarkup(data),
