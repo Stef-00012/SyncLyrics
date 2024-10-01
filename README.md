@@ -46,6 +46,7 @@ The avaible options are:
 - `favoritePlayers` (Array\<String>): List of players that will be prioritized over others.
 - `hatedPlayers` (Array\<String>): Opposite of `favoritePlayers`.
 - `iconPath` (String): File path the song's icon will be stored in (must be an absolute path).
+- `deleteIconWhenPaused` (Boolean): Whetever keep the song icon or not when the player is paused.
 
 ### Example Config
 
@@ -65,7 +66,8 @@ The avaible options are:
         "spotify"
     ],
     "hatedPlayers": [],
-    "iconPath": null
+    "iconPath": null,
+    "deleteIconWhenPaused": false
 }
 ```
 

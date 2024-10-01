@@ -46,6 +46,7 @@ let config = {
 	favoritePlayers: [],
 	hatedPlayers: [],
 	iconPath: null,
+	deleteIconWhenPaused: false,
 };
 
 let cachedLyrics;
@@ -210,12 +211,22 @@ if (["--trackid", "-tid"].some((arg) => process.argv.includes(arg))) {
 }
 
 if (["--cover", "-c"].some((arg) => process.argv.includes(arg))) {
-	const metadata = getPlayer(false);
+	const player = getPlayer(false);
 
-	if (!metadata) {
+	if (!player) {
 		outputLog();
 
 		process.exit(0);
+	}
+
+	if (config.deleteIconWhenPaused) {
+		const metadata = fetchPlayerctl(player, false, false);
+
+		if (!metadata.playing) {
+			outputLog();
+
+			process.exit(0);
+		}
 	}
 
 	outputLog(config.iconPath || path.join(configFolder, "icon.png"));
@@ -684,24 +695,44 @@ function getPlayer(skipPaused = true, offset = 0) {
 function updateIcon(metadata) {
 	const url = metadata.iconUrl;
 
-	if (!url) return null;
+	if (!url) {
+		deleteIcon();
+
+		return null;
+	}
 
 	debugLog("Fetching song icon");
 
-	try {
-		fetch(url)
-			.then((res) => res.arrayBuffer())
-			.then((data) => {
-				const buffer = Buffer.from(data);
+	const iconPath = config.iconPath || path.join(configFolder, "icon.png");
 
-				const iconPath = config.iconPath || path.join(configFolder, "icon.png");
+	if (["http://", "https://"].some((iconUrl) => url.startsWith(iconUrl))) {
+		try {
+			fetch(url)
+				.then((res) => res.arrayBuffer())
+				.then((data) => {
+					const buffer = Buffer.from(data);
 
-				fs.writeFileSync(iconPath, buffer);
-			});
-	} catch (e) {
-		debugLog("Something went wrong while fetching the icon URL");
+					fs.writeFileSync(iconPath, buffer);
+				});
+		} catch (e) {
+			debugLog("Something went wrong while fetching the icon URL");
 
-		return null;
+			deleteIcon();
+
+			return null;
+		}
+	} else if (url.startsWith("file://")) {
+		const path = new URL(url).pathname;
+
+		try {
+			fs.copyFileSync(path, iconPath);
+		} catch (e) {
+			debugLog("Something went wrong while copying the file");
+
+			deleteIcon();
+
+			return null;
+		}
 	}
 }
 
@@ -722,12 +753,21 @@ function debugLog(...args) {
 		console.debug("\x1b[35;1mDEBUG:\x1b[0m", ...args);
 }
 
-function fetchPlayerctl(player) {
-	if (!player) player = getPlayer();
+function fetchPlayerctl(player, skipPaused = true, retry = true) {
+	if (!player) player = getPlayer(skipPaused);
 	const fullPlayer = getPlayer(false);
 
-	if (!fullPlayer) deleteIcon();
-	if (!player) return null;
+	if (!fullPlayer) {
+		deleteIcon();
+
+		return null;
+	}
+
+	if (!player) {
+		if (config.deleteIconWhenPaused) deleteIcon();
+
+		return null;
+	}
 
 	let rawMetadata;
 
@@ -751,21 +791,25 @@ function fetchPlayerctl(player) {
 			.trim()
 			.split("||||");
 	} catch (e) {
-		debugLog(`Something went wrong while getting data from playerctl (player = ${player})`);
+		debugLog(
+			`Something went wrong while getting data from playerctl (player = ${player})`,
+		);
 
-		playerOffset++
+		if (retry) {
+			playerOffset++;
 
-		const newPlayer = getPlayer(true, playerOffset)
+			const newPlayer = getPlayer(skipPaused, playerOffset);
 
-		if (newPlayer) {
-			debugLog(`Trying to use another player (${newPlayer})`)
+			if (newPlayer) {
+				debugLog(`Trying to use another player (${newPlayer})`);
 
-			return fetchPlayerctl(newPlayer);
+				return fetchPlayerctl(newPlayer, skipPaused);
+			}
 		}
 
 		playerOffset = 0;
 
-        deleteIcon()
+		deleteIcon();
 
 		if (
 			["--artist", "--data", "--name", "-a", "-d", "-n"].some((arg) =>
