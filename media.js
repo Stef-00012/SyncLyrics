@@ -745,12 +745,12 @@ function fetchPlayerctl() {
 		) {
 			outputLog(noSong);
 
-			process.exit(0);
+			return null;
 		}
 
 		outputLog(noLyrics);
 
-		process.exit(0);
+		return null;
 	}
 
 	const metadata = {
