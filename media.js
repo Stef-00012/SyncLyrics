@@ -51,6 +51,7 @@ let config = {
 let cachedLyrics;
 let currentTrackId;
 let currentInterval;
+let playerOffset = 0;
 let lastStoppedPlayer;
 let currentIntervalType;
 let currentMarqueeIndex = 0;
@@ -322,7 +323,7 @@ async function fetchLyrics(metadata) {
 	} catch (e) {
 		cachedLyrics = cacheData;
 
-		debugLog("Something went wrong while fetching the lyrics", e);
+		debugLog("Something went wrong while fetching the lyrics");
 
 		return null;
 	}
@@ -609,13 +610,13 @@ function formatLyricsTooltipText(data) {
 	return `${previousLyrics}<span color="${tooltipColor}"><i>${escapeMarkup(data.current)}</i></span>${nextLyrics}`;
 }
 
-function getPlayer(skipPaused = true) {
+function getPlayer(skipPaused = true, offset = 0) {
 	let players;
 
 	try {
 		players = execSync("playerctl --list-all").toString().trim();
 	} catch (e) {
-		debugLog("Something went wrong while getting the list of players", e);
+		debugLog("Something went wrong while getting the list of players");
 
 		return null;
 	}
@@ -648,7 +649,15 @@ function getPlayer(skipPaused = true) {
 	if (playersList.length <= 0) return null;
 
 	for (const player of playersList) {
-		if (!skipPaused) return player;
+		if (!skipPaused) {
+			if (offset > 0) {
+				offset--;
+
+				continue;
+			}
+
+			return player;
+		}
 
 		try {
 			const isPlaying =
@@ -660,8 +669,16 @@ function getPlayer(skipPaused = true) {
 			continue;
 		}
 
+		if (offset > 0) {
+			offset--;
+
+			continue;
+		}
+
 		return player;
 	}
+
+	return null;
 }
 
 function updateIcon(metadata) {
@@ -682,7 +699,7 @@ function updateIcon(metadata) {
 				fs.writeFileSync(iconPath, buffer);
 			});
 	} catch (e) {
-		debugLog("Something went wrong while fetching the icon URL", e);
+		debugLog("Something went wrong while fetching the icon URL");
 
 		return null;
 	}
@@ -705,13 +722,11 @@ function debugLog(...args) {
 		console.debug("\x1b[35;1mDEBUG:\x1b[0m", ...args);
 }
 
-function fetchPlayerctl() {
-	const player = getPlayer();
-
+function fetchPlayerctl(player) {
+	if (!player) player = getPlayer();
 	const fullPlayer = getPlayer(false);
 
 	if (!fullPlayer) deleteIcon();
-
 	if (!player) return null;
 
 	let rawMetadata;
@@ -736,7 +751,19 @@ function fetchPlayerctl() {
 			.trim()
 			.split("||||");
 	} catch (e) {
-		debugLog("Something went wrong while getting data from playerctl", e);
+		debugLog(`Something went wrong while getting data from playerctl (player = ${player})`);
+
+		playerOffset++
+
+		const newPlayer = getPlayer(true, playerOffset)
+
+		if (newPlayer) {
+			debugLog(`Trying to use another player (${newPlayer})`)
+
+			return fetchPlayerctl(newPlayer);
+		}
+
+		playerOffset = 0;
 
         deleteIcon()
 
@@ -780,6 +807,8 @@ function fetchPlayerctl() {
 	);
 
 	debugLog("Metadata:", metadata);
+
+	playerOffset = 0;
 
 	return metadata;
 }
