@@ -738,6 +738,8 @@ function fetchPlayerctl() {
 	} catch (e) {
 		debugLog("Something went wrong while getting data from playerctl", e);
 
+        deleteIcon()
+
 		if (
 			["--artist", "--data", "--name", "-a", "-d", "-n"].some((arg) =>
 				process.argv.includes(arg),
