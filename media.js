@@ -70,9 +70,9 @@ debugLog(`Loaded config from the file ${configFile}`);
 fs.watchFile(configFile, () => {
 	debugLog("Config file has been updated. Updating config...");
 
-	debugLog("Using config:", config);
-
 	updateConfig();
+
+	debugLog("Using config:", config);
 });
 
 debugLog(`Using config folder: ${configFolder}`);
