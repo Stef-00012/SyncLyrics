@@ -18,11 +18,11 @@ Just clone this repository
 
 ### Flags
 
-- `--volume-down`, `-vol-`: Decreases the player's volume by 1%.
+- `--volume-down=X`, `-vol-=X`: Decreases the player's volume by `X`%, or the `defaultVolumeStep` % config if X is not present.
 - `--play-toggle`, `-pt`: Plays or pauses the player.
 - `--show-lyrics`, `-sl`: Saves the lyrics in a temporary file (`/tmp/lyrics.txt`) and opens the file (when combined with `--save` or `-s` it saves the lyrics in a permanent file, `~/Downloads/syncLyrics/<song_name>-<artist_name>.txt`).
 - `--show-cover`, `-sc`: Opens the song's icon in your system default image viewer (when combined with `--save` or `-s` it saves the icon in a permanent file, `~/Downloads/syncLyrics/<song_name>-<artist_name>.png`).
-- `--volume-up`, `-vol+`: Increases the player's volume by 1%.
+- `--volume-up=X`, `-vol+=X`: Increases the player's volume by `X`%, or the `defaultVolumeStep` % config if X is not present.
 - `--trackid`, `-tid`: Returns the song ID (required for local lyrics).
 - `--artist`, `-a`: Returns the artist name. `*`
 - `--cover`, `-c`: Returns the absolute path to the song's icon image.
@@ -47,6 +47,7 @@ The avaible options are:
 - `hatedPlayers` (Array\<String>): Opposite of `favoritePlayers`.
 - `iconPath` (String): File path the song's icon will be stored in (must be an absolute path).
 - `deleteIconWhenPaused` (Boolean): Whetever keep the song icon or not when the player is paused.
+- `defaultVolumeStep` (Number): The default step for volume increase/decrease.
 
 ### Example Config
 
@@ -59,15 +60,17 @@ The avaible options are:
     "lyricsUpdateInterval": 500,
     "marqueeMinLength": 30,
     "ignoredPlayers": [
-        "chromium",
         "plasma-browser-integration"
     ],
     "favoritePlayers": [
         "spotify"
     ],
-    "hatedPlayers": [],
+    "hatedPlayers": [
+        "chromium"
+    ],
     "iconPath": null,
-    "deleteIconWhenPaused": false
+    "deleteIconWhenPaused": true,
+	"defaultVolumeStep": 5
 }
 ```
 
