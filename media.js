@@ -298,7 +298,12 @@ async function fetchLyrics(metadata) {
 	const url = `https://lrclib.net/api/search?${searchParams.join("&")}`;
 
 	try {
-		const res = await fetch(url);
+		const res = await fetch(url, {
+			headers: {
+				'Lrclib-Client': "SyncLyrics (https://github.com/Stef-00012/SyncLyrics)",
+				'User-Agent': "SyncLyrics (https://github.com/Stef-00012/SyncLyrics)",
+			}
+		});
 
 		if (!res.ok) {
 			debugLog(
