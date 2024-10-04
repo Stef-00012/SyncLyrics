@@ -47,6 +47,7 @@ let config = {
 	hatedPlayers: [],
 	iconPath: null,
 	deleteIconWhenPaused: false,
+	defaultVolumeStep: 5
 };
 
 let cachedLyrics;
@@ -78,12 +79,36 @@ fs.watchFile(configFile, () => {
 
 debugLog(`Using config folder: ${configFolder}`);
 
-if (["--volume-down", "-vol-"].some((arg) => process.argv.includes(arg))) {
+const volumeDownArg = process.argv.find(processArg => ['--volume-down', '-vol-'].some(arg => processArg.startsWith(arg)))
+
+if (volumeDownArg) {
 	const player = getPlayer();
 
 	if (!player && !lastStoppedPlayer) process.exit(0);
 
-	execSync(`playerctl -p ${lastStoppedPlayer || player} volume 0.01-`);
+	const stepAmount = Number.parseInt(volumeDownArg.split('=').pop()) || config.defaultVolumeStep
+
+	const step = stepAmount * 0.01
+
+	execSync(`playerctl -p ${lastStoppedPlayer || player} volume ${step}-`);
+
+	lastStoppedPlayer = player;
+
+	process.exit(0);
+}
+
+const volumeUpArg = process.argv.find(processArg => ['--volume-up', '-vol+'].some(arg => processArg.startsWith(arg)))
+
+if (volumeUpArg) {
+	const player = getPlayer();
+
+	if (!player && !lastStoppedPlayer) process.exit(0);
+
+	const stepAmount = Number.parseInt(volumeUpArg.split('=').pop()) || config.defaultVolumeStep
+
+	const step = stepAmount * 0.01
+
+	execSync(`playerctl -p ${lastStoppedPlayer || player} volume ${step}+`);
 
 	lastStoppedPlayer = player;
 
