@@ -47,7 +47,7 @@ let config = {
 	hatedPlayers: [],
 	iconPath: null,
 	deleteIconWhenPaused: false,
-	defaultVolumeStep: 5
+	defaultVolumeStep: 5,
 };
 
 let cachedLyrics;
@@ -78,42 +78,6 @@ fs.watchFile(configFile, () => {
 });
 
 debugLog(`Using config folder: ${configFolder}`);
-
-const volumeDownArg = process.argv.find(processArg => ['--volume-down', '-vol-'].some(arg => processArg.startsWith(arg)))
-
-if (volumeDownArg) {
-	const player = getPlayer();
-
-	if (!player && !lastStoppedPlayer) process.exit(0);
-
-	const stepAmount = Number.parseInt(volumeDownArg.split('=').pop()) || config.defaultVolumeStep
-
-	const step = stepAmount * 0.01
-
-	execSync(`playerctl -p ${lastStoppedPlayer || player} volume ${step}-`);
-
-	lastStoppedPlayer = player;
-
-	process.exit(0);
-}
-
-const volumeUpArg = process.argv.find(processArg => ['--volume-up', '-vol+'].some(arg => processArg.startsWith(arg)))
-
-if (volumeUpArg) {
-	const player = getPlayer();
-
-	if (!player && !lastStoppedPlayer) process.exit(0);
-
-	const stepAmount = Number.parseInt(volumeUpArg.split('=').pop()) || config.defaultVolumeStep
-
-	const step = stepAmount * 0.01
-
-	execSync(`playerctl -p ${lastStoppedPlayer || player} volume ${step}+`);
-
-	lastStoppedPlayer = player;
-
-	process.exit(0);
-}
 
 if (["--show-lyrics", "-sl"].some((arg) => process.argv.includes(arg))) {
 	(async () => {
@@ -211,18 +175,6 @@ if (["--play-toggle", "-pt"].some((arg) => process.argv.includes(arg))) {
 	process.exit(0);
 }
 
-if (["--volume-up", "-vol+"].some((arg) => process.argv.includes(arg))) {
-	const player = getPlayer();
-
-	if (!player && !lastStoppedPlayer) process.exit(0);
-
-	execSync(`playerctl -p ${lastStoppedPlayer || player} volume 0.01+`);
-
-	lastStoppedPlayer = player;
-
-	process.exit(0);
-}
-
 if (["--trackid", "-tid"].some((arg) => process.argv.includes(arg))) {
 	const metadata = fetchPlayerctl();
 
@@ -292,6 +244,48 @@ if (["--name", "-n"].some((arg) => process.argv.includes(arg))) {
 	}
 }
 
+const volumeDownArg = process.argv.find((processArg) =>
+	["--volume-down", "-vol-"].some((arg) => processArg.startsWith(arg)),
+);
+
+if (volumeDownArg) {
+	const player = getPlayer();
+
+	if (!player && !lastStoppedPlayer) process.exit(0);
+
+	const stepAmount =
+		Number.parseInt(volumeDownArg.split("=").pop()) || config.defaultVolumeStep;
+
+	const step = stepAmount * 0.01;
+
+	execSync(`playerctl -p ${lastStoppedPlayer || player} volume ${step}-`);
+
+	lastStoppedPlayer = player;
+
+	process.exit(0);
+}
+
+const volumeUpArg = process.argv.find((processArg) =>
+	["--volume-up", "-vol+"].some((arg) => processArg.startsWith(arg)),
+);
+
+if (volumeUpArg) {
+	const player = getPlayer();
+
+	if (!player && !lastStoppedPlayer) process.exit(0);
+
+	const stepAmount =
+		Number.parseInt(volumeUpArg.split("=").pop()) || config.defaultVolumeStep;
+
+	const step = stepAmount * 0.01;
+
+	execSync(`playerctl -p ${lastStoppedPlayer || player} volume ${step}+`);
+
+	lastStoppedPlayer = player;
+
+	process.exit(0);
+}
+
 if (!currentInterval) {
 	currentIntervalType = "lyrics";
 
@@ -325,9 +319,10 @@ async function fetchLyrics(metadata) {
 	try {
 		const res = await fetch(url, {
 			headers: {
-				'Lrclib-Client': "SyncLyrics (https://github.com/Stef-00012/SyncLyrics)",
-				'User-Agent': "SyncLyrics (https://github.com/Stef-00012/SyncLyrics)",
-			}
+				"Lrclib-Client":
+					"SyncLyrics (https://github.com/Stef-00012/SyncLyrics)",
+				"User-Agent": "SyncLyrics (https://github.com/Stef-00012/SyncLyrics)",
+			},
 		});
 
 		if (!res.ok) {
@@ -559,230 +554,6 @@ async function returnData() {
 	outputLog(output);
 }
 
-function getLyricsData(metadata, lyrics) {
-	let firstLyric;
-	let lastLyric;
-
-	let firstTimestamp;
-	let lastTimestamp;
-
-	const lyricsSplit = lyrics
-		.split("\n")
-		.map((lyric) => {
-			let lyricText = lyric.split(" ");
-
-			const time = lyricText.shift().replace(/[\[\]]/g, "");
-
-			lyricText = escapeMarkup(lyricText.join(" "));
-
-			if (lyricText.length > 0) return [time, lyricText];
-		})
-		.filter(Boolean);
-
-	for (const lyric of lyricsSplit) {
-		const timestamp = lyric[0];
-		const text = lyric[1];
-
-		if (!firstLyric) firstLyric = text;
-		if (!firstTimestamp) firstTimestamp = timestamp;
-
-		const minutes = timestamp.split(":")[0];
-		const seconds = timestamp.split(":")[1];
-
-		const totalSeconds =
-			Number.parseFloat(minutes) * 60 + Number.parseFloat(seconds);
-
-		if (metadata.currentMs / 1000 >= totalSeconds) {
-			lastLyric = text;
-			lastTimestamp = timestamp;
-		}
-	}
-
-	const searchLyric = lastLyric || firstLyric;
-	const searchTimestamp = lastTimestamp || firstTimestamp;
-
-	if (!searchLyric) {
-		debugLog("No lastLyric and firstLyric avaible");
-
-		return null;
-	}
-
-	let previousLinesAmount = 0;
-	let nextLinesAmount = 0;
-
-	const currentLyricIndex = lyricsSplit.findIndex(
-		(lyric) => lyric[0] === searchTimestamp && lyric[1] === searchLyric,
-	);
-
-	if (currentLyricIndex === 1) previousLinesAmount = 1;
-	else if (currentLyricIndex === 2) previousLinesAmount = 2;
-	else if (currentLyricIndex >= 3) previousLinesAmount = 3;
-
-	if (currentLyricIndex === lyricsSplit.length - 1) nextLinesAmount = 1;
-	else if (currentLyricIndex === lyricsSplit.length - 2) nextLinesAmount = 2;
-	else if (currentLyricIndex <= lyricsSplit.length - 3) nextLinesAmount = 3;
-
-	const previousLines = [...lyricsSplit]
-		.splice(currentLyricIndex - previousLinesAmount, previousLinesAmount)
-		.map((lyric) => lyric[1]);
-
-	const nextLines = [...lyricsSplit]
-		.splice(currentLyricIndex + 1, nextLinesAmount)
-		.map((lyric) => lyric[1]);
-
-	return {
-		previous: previousLines,
-		current: searchLyric,
-		next: nextLines,
-	};
-}
-
-function formatLyricsTooltipText(data) {
-	const tooltipColor = config.tooltipCurrentLyricColor || "#cba6f7";
-
-	const previousLyrics =
-		data.previous.length > 0
-			? `${escapeMarkup(data.previous.join("\n"))}\n`
-			: "";
-
-	const nextLyrics =
-		data.next.length > 0 ? `\n${escapeMarkup(data.next.join("\n"))}` : "";
-
-	return `${previousLyrics}<span color="${tooltipColor}"><i>${escapeMarkup(data.current)}</i></span>${nextLyrics}`;
-}
-
-function getPlayer(skipPaused = true, offset = 0) {
-	let players;
-
-	try {
-		players = execSync("playerctl --list-all").toString().trim();
-	} catch (e) {
-		debugLog("Something went wrong while getting the list of players");
-
-		return null;
-	}
-
-	const playersList = players
-		.split("\n")
-		.map((player) => player.split(".").shift())
-		.filter((player) => {
-			if (config.ignoredPlayers?.includes(player)) return false;
-
-			return true;
-		})
-		.sort((a, b) => {
-			const aIsFavorite = config.favoritePlayers?.includes(a);
-			const bIsFavorite = config.favoritePlayers?.includes(b);
-			const aIsHated = config.hatedPlayers?.includes(a);
-			const bIsHated = config.hatedPlayers?.includes(b);
-
-			if (aIsFavorite && !bIsFavorite) return -1;
-			if (!aIsFavorite && bIsFavorite) return 1;
-
-			if (aIsHated && !bIsHated) return 1;
-			if (!aIsHated && bIsHated) return -1;
-
-			return 0;
-		});
-
-	debugLog("Avaible Players", playersList);
-
-	if (playersList.length <= 0) return null;
-
-	for (const player of playersList) {
-		if (!skipPaused) {
-			if (offset > 0) {
-				offset--;
-
-				continue;
-			}
-
-			return player;
-		}
-
-		try {
-			const isPlaying =
-				execSync(`playerctl -p ${player} status`).toString().trim() ===
-				"Playing";
-
-			if (!isPlaying) continue;
-		} catch (e) {
-			continue;
-		}
-
-		if (offset > 0) {
-			offset--;
-
-			continue;
-		}
-
-		return player;
-	}
-
-	return null;
-}
-
-function updateIcon(metadata) {
-	const url = metadata.iconUrl;
-
-	if (!url) {
-		deleteIcon();
-
-		return null;
-	}
-
-	debugLog("Fetching song icon");
-
-	const iconPath = config.iconPath || path.join(configFolder, "icon.png");
-
-	if (["http://", "https://"].some((iconUrl) => url.startsWith(iconUrl))) {
-		try {
-			fetch(url)
-				.then((res) => res.arrayBuffer())
-				.then((data) => {
-					const buffer = Buffer.from(data);
-
-					fs.writeFileSync(iconPath, buffer);
-				});
-		} catch (e) {
-			debugLog("Something went wrong while fetching the icon URL");
-
-			deleteIcon();
-
-			return null;
-		}
-	} else if (url.startsWith("file://")) {
-		const path = new URL(url).pathname;
-
-		try {
-			fs.copyFileSync(path, iconPath);
-		} catch (e) {
-			debugLog("Something went wrong while copying the file");
-
-			deleteIcon();
-
-			return null;
-		}
-	}
-}
-
-function escapeMarkup(text) {
-	return text.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
-
-function outputLog(...args) {
-	console.info(...args);
-}
-
-function debugLog(...args) {
-	if (
-		config.debug ||
-		process.env.DEBUG?.toLowerCase() === "true" ||
-		process.argv.includes("--debug")
-	)
-		console.debug("\x1b[35;1mDEBUG:\x1b[0m", ...args);
-}
-
 function fetchPlayerctl(player, skipPaused = true, retry = true) {
 	if (!player) player = getPlayer(skipPaused);
 	const fullPlayer = getPlayer(false);
@@ -887,30 +658,186 @@ function fetchPlayerctl(player, skipPaused = true, retry = true) {
 	return metadata;
 }
 
-function updateConfig() {
-	if (!fs.existsSync(configFile))
-		fs.writeFileSync(configFile, JSON.stringify(config, null, 4));
-
-	const configFileContent = fs.readFileSync(configFile, "utf-8");
-
-	let newConfig = {};
+function getPlayer(skipPaused = true, offset = 0) {
+	let players;
 
 	try {
-		newConfig = JSON.parse(configFileContent);
+		players = execSync("playerctl --list-all").toString().trim();
 	} catch (e) {
-		debugLog("Config file is not a valid JSON");
+		debugLog("Something went wrong while getting the list of players");
 
-		process.exit(0);
+		return null;
 	}
 
-	if (newConfig.iconPath?.startsWith("./")) {
-		outputLog("\x1b[31mconfig.iconPath must be an absolute path");
+	const playersList = players
+		.split("\n")
+		.map((player) => player.split(".").shift())
+		.filter((player) => {
+			if (config.ignoredPlayers?.includes(player)) return false;
 
-		process.exit(0);
+			return true;
+		})
+		.sort((a, b) => {
+			const aIsFavorite = config.favoritePlayers?.includes(a);
+			const bIsFavorite = config.favoritePlayers?.includes(b);
+			const aIsHated = config.hatedPlayers?.includes(a);
+			const bIsHated = config.hatedPlayers?.includes(b);
+
+			if (aIsFavorite && !bIsFavorite) return -1;
+			if (!aIsFavorite && bIsFavorite) return 1;
+
+			if (aIsHated && !bIsHated) return 1;
+			if (!aIsHated && bIsHated) return -1;
+
+			return 0;
+		});
+
+	debugLog("Avaible Players", playersList);
+
+	if (playersList.length <= 0) return null;
+
+	for (const player of playersList) {
+		if (!skipPaused) {
+			if (offset > 0) {
+				offset--;
+
+				continue;
+			}
+
+			return player;
+		}
+
+		try {
+			const isPlaying =
+				execSync(`playerctl -p ${player} status`).toString().trim() ===
+				"Playing";
+
+			if (!isPlaying) continue;
+		} catch (e) {
+			continue;
+		}
+
+		if (offset > 0) {
+			offset--;
+
+			continue;
+		}
+
+		return player;
+	}
+
+	return null;
+}
+
+function getLyricsData(metadata, lyrics) {
+	let firstLyric;
+	let lastLyric;
+
+	let firstTimestamp;
+	let lastTimestamp;
+
+	const lyricsSplit = lyrics
+		.split("\n")
+		.map((lyric) => {
+			let lyricText = lyric.split(" ");
+
+			const time = lyricText.shift().replace(/[\[\]]/g, "");
+
+			lyricText = escapeMarkup(lyricText.join(" "));
+
+			if (lyricText.length > 0) return [time, lyricText];
+		})
+		.filter(Boolean);
+
+	for (const lyric of lyricsSplit) {
+		const timestamp = lyric[0];
+		const text = lyric[1];
+
+		if (!firstLyric) firstLyric = text;
+		if (!firstTimestamp) firstTimestamp = timestamp;
+
+		const minutes = timestamp.split(":")[0];
+		const seconds = timestamp.split(":")[1];
+
+		const totalSeconds =
+			Number.parseFloat(minutes) * 60 + Number.parseFloat(seconds);
+
+		if (metadata.currentMs / 1000 >= totalSeconds) {
+			lastLyric = text;
+			lastTimestamp = timestamp;
+		}
+	}
+
+	const searchLyric = lastLyric || firstLyric;
+	const searchTimestamp = lastTimestamp || firstTimestamp;
+
+	if (!searchLyric) {
+		debugLog("No lastLyric and firstLyric avaible");
+
+		return null;
+	}
+
+	let previousLinesAmount = 0;
+	let nextLinesAmount = 0;
+
+	const currentLyricIndex = lyricsSplit.findIndex(
+		(lyric) => lyric[0] === searchTimestamp && lyric[1] === searchLyric,
+	);
+
+	if (currentLyricIndex === 1) previousLinesAmount = 1;
+	else if (currentLyricIndex === 2) previousLinesAmount = 2;
+	else if (currentLyricIndex >= 3) previousLinesAmount = 3;
+
+	if (currentLyricIndex === lyricsSplit.length - 1) nextLinesAmount = 1;
+	else if (currentLyricIndex === lyricsSplit.length - 2) nextLinesAmount = 2;
+	else if (currentLyricIndex <= lyricsSplit.length - 3) nextLinesAmount = 3;
+
+	const previousLines = [...lyricsSplit]
+		.splice(currentLyricIndex - previousLinesAmount, previousLinesAmount)
+		.map((lyric) => lyric[1]);
+
+	const nextLines = [...lyricsSplit]
+		.splice(currentLyricIndex + 1, nextLinesAmount)
+		.map((lyric) => lyric[1]);
+
+	return {
+		previous: previousLines,
+		current: searchLyric,
+		next: nextLines,
+	};
+}
+
+function validateConfig(newConfig) {
+	if (!newConfig) newConfig = config;
+
+	let invalidConfig = 0;
+
+	if (
+		newConfig.debug !== undefined &&
+		newConfig.debug !== null &&
+		typeof newConfig.debug !== "boolean"
+	) {
+		debugLog("'config.debug' must be a boolean");
+
+		invalidConfig++;
+
+		newConfig.debug = false;
 	}
 
 	if (
-		typeof newConfig.dataUpdateInterval === "number" &&
+		newConfig.dataUpdateInterval !== undefined &&
+		newConfig.dataUpdateInterval !== null &&
+		(!Number.isInteger(newConfig.dataUpdateInterval) ||
+			newConfig.dataUpdateInterval <= 0)
+	) {
+		debugLog("'config.dataUpdateInterval' must be a positive integer");
+
+		invalidConfig++;
+
+		newConfig.dataUpdateInterval = 1000;
+	}
+
+	if (
 		newConfig.dataUpdateInterval !== config.dataUpdateInterval &&
 		currentIntervalType === "data"
 	) {
@@ -925,7 +852,19 @@ function updateConfig() {
 	}
 
 	if (
-		typeof newConfig.artistUpdateInterval === "number" &&
+		newConfig.artistUpdateInterval !== undefined &&
+		newConfig.artistUpdateInterval !== null &&
+		(!Number.isInteger(newConfig.artistUpdateInterval) ||
+			newConfig.artistUpdateInterval <= 0)
+	) {
+		debugLog("'config.artistUpdateInterval' must be a positive integer");
+
+		invalidConfig++;
+
+		newConfig.artistUpdateInterval = 1000;
+	}
+
+	if (
 		newConfig.artistUpdateInterval !== config.artistUpdateInterval &&
 		currentIntervalType === "artist"
 	) {
@@ -940,7 +879,19 @@ function updateConfig() {
 	}
 
 	if (
-		typeof newConfig.nameUpdateInterval === "number" &&
+		newConfig.nameUpdateInterval !== undefined &&
+		newConfig.nameUpdateInterval !== null &&
+		(!Number.isInteger(newConfig.nameUpdateInterval) ||
+			newConfig.nameUpdateInterval <= 0)
+	) {
+		debugLog("'config.nameUpdateInterval' must be a positive integer");
+
+		invalidConfig++;
+
+		newConfig.nameUpdateInterval = 1000;
+	}
+
+	if (
 		newConfig.nameUpdateInterval !== config.nameUpdateInterval &&
 		currentIntervalType === "name"
 	) {
@@ -955,7 +906,19 @@ function updateConfig() {
 	}
 
 	if (
-		typeof newConfig.lyricsUpdateInterval === "number" &&
+		newConfig.lyricsUpdateInterval !== undefined &&
+		newConfig.lyricsUpdateInterval !== null &&
+		(!Number.isInteger(newConfig.lyricsUpdateInterval) ||
+			newConfig.lyricsUpdateInterval <= 0)
+	) {
+		debugLog("'config.lyricsUpdateInterval' must be a positive integer");
+
+		invalidConfig++;
+
+		newConfig.lyricsUpdateInterval = 500;
+	}
+
+	if (
 		newConfig.lyricsUpdateInterval !== config.lyricsUpdateInterval &&
 		currentIntervalType === "lyrics"
 	) {
@@ -968,6 +931,248 @@ function updateConfig() {
 			newConfig.lyricsUpdateInterval || 1000,
 		);
 	}
+
+	if (
+		newConfig.marqueeMinLength !== undefined &&
+		newConfig.marqueeMinLength !== null &&
+		(!Number.isInteger(newConfig.marqueeMinLength) ||
+			newConfig.marqueeMinLength <= 0)
+	) {
+		debugLog("'config.marqueeMinLength' must be a positive integer");
+
+		invalidConfig++;
+
+		newConfig.marqueeMinLength = 30;
+	}
+
+	if (
+		newConfig.ignoredPlayers !== undefined &&
+		newConfig.ignoredPlayers !== null &&
+		!Array.isArray(newConfig.ignoredPlayers)
+	) {
+		debugLog("'config.ignoredPlayers' must be an array");
+
+		invalidConfig++;
+
+		newConfig.ignoredPlayers = [];
+	}
+
+	if (
+		newConfig.favoritePlayers !== undefined &&
+		newConfig.favoritePlayers !== null &&
+		!Array.isArray(newConfig.favoritePlayers)
+	) {
+		debugLog("'config.favoritePlayers' must be an array");
+
+		invalidConfig++;
+
+		newConfig.favoritePlayers = [];
+	}
+
+	if (
+		newConfig.hatedPlayers !== undefined &&
+		newConfig.hatedPlayers !== null &&
+		!Array.isArray(newConfig.hatedPlayers)
+	) {
+		debugLog("'config.hatedPlayers' must be an array");
+
+		invalidConfig++;
+
+		newConfig.hatedPlayers = [];
+	}
+
+	if (
+		newConfig.iconPath !== undefined &&
+		newConfig.iconPath !== null &&
+		(typeof newConfig.iconPath !== "string" ||
+			newConfig.iconPath.startsWith(".") ||
+			!newConfig.iconPath.startsWith("/"))
+	) {
+		debugLog("'config.iconPath' must be a string and must be an absolute path");
+
+		invalidConfig++;
+
+		newConfig.iconPath = null;
+	}
+
+	if (newConfig.iconPath) {
+		const pathSplit = newConfig.iconPath.split("/");
+
+		pathSplit.pop();
+
+		const dir = pathSplit.join("/");
+
+		if (!fs.existsSync(dir)) {
+			try {
+				fs.mkdirSync(dir, {
+					recursive: true,
+				});
+			} catch (e) {
+				console.log(
+					"There was an error while creating the directory for the song icon",
+				);
+
+				invalidConfig++;
+
+				newConfig.iconPath = null;
+			}
+		}
+	}
+
+	if (
+		newConfig.deleteIconWhenPaused !== undefined &&
+		newConfig.deleteIconWhenPaused !== null &&
+		typeof newConfig.deleteIconWhenPaused !== "boolean"
+	) {
+		debugLog("'config.deleteIconWhenPaused' must be a boolean");
+
+		invalidConfig++;
+
+		newConfig.deleteIconWhenPaused = false;
+	}
+
+	if (
+		newConfig.defaultVolumeStep !== undefined &&
+		newConfig.defaultVolumeStep !== null &&
+		(!Number.isInteger(newConfig.defaultVolumeStep) ||
+			newConfig.defaultVolumeStep <= 0 ||
+			newConfig.defaultVolumeStep > 100)
+	) {
+		debugLog(
+			"'config.defaultVolumeStep' must be a positive integer lesser than 100",
+		);
+
+		invalidConfig++;
+
+		newConfig.defaultVolumeStep = 5;
+	}
+
+	if (invalidConfig > 0) {
+		try {
+			fs.writeFileSync(configFile, JSON.stringify(newConfig, null, 4));
+		} catch (e) {
+			console.log("Something went wrong while updating the config file...", e);
+		}
+
+		return false;
+	}
+
+	return true;
+}
+
+function formatLyricsTooltipText(data) {
+	const tooltipColor = config.tooltipCurrentLyricColor || "#cba6f7";
+
+	const previousLyrics =
+		data.previous.length > 0
+			? `${escapeMarkup(data.previous.join("\n"))}\n`
+			: "";
+
+	const nextLyrics =
+		data.next.length > 0 ? `\n${escapeMarkup(data.next.join("\n"))}` : "";
+
+	return `${previousLyrics}<span color="${tooltipColor}"><i>${escapeMarkup(data.current)}</i></span>${nextLyrics}`;
+}
+
+function updateIcon(metadata) {
+	const url = metadata.iconUrl;
+
+	if (!url) {
+		deleteIcon();
+
+		return null;
+	}
+
+	debugLog("Fetching song icon");
+
+	const iconPath = config.iconPath || path.join(configFolder, "icon.png");
+
+	if (["http://", "https://"].some((iconUrl) => url.startsWith(iconUrl))) {
+		try {
+			let error = false;
+
+			fetch(url)
+				.then((res) => res.arrayBuffer())
+				.then((data) => {
+					const buffer = Buffer.from(data);
+
+					try {
+						fs.writeFileSync(iconPath, buffer);
+					} catch (e) {
+						debugLog("Something went wrong while saving the song icon");
+
+						deleteIcon();
+
+						error = true;
+					}
+				});
+
+			if (error) return null;
+		} catch (e) {
+			debugLog("Something went wrong while fetching the icon URL");
+
+			deleteIcon();
+
+			return null;
+		}
+	} else if (url.startsWith("file://")) {
+		const path = new URL(url).pathname;
+
+		try {
+			fs.copyFileSync(path, iconPath);
+		} catch (e) {
+			debugLog("Something went wrong while copying the file");
+
+			deleteIcon();
+
+			return null;
+		}
+	}
+}
+
+function escapeMarkup(text) {
+	return text.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function outputLog(...args) {
+	console.info(...args);
+}
+
+function debugLog(...args) {
+	if (
+		config.debug ||
+		process.env.DEBUG?.toLowerCase() === "true" ||
+		process.argv.includes("--debug")
+	)
+		console.debug("\x1b[35;1mDEBUG:\x1b[0m", ...args);
+}
+
+function updateConfig() {
+	if (!fs.existsSync(configFile)) {
+		try {
+			fs.writeFileSync(configFile, JSON.stringify(config, null, 4));
+		} catch (e) {
+			console.log("Something went wrong while creating the config file...", e);
+
+			process.exit(0);
+		}
+	}
+
+	const configFileContent = fs.readFileSync(configFile, "utf-8");
+
+	let newConfig = {};
+
+	try {
+		newConfig = JSON.parse(configFileContent);
+	} catch (e) {
+		debugLog("Config file is not a valid JSON");
+
+		process.exit(0);
+	}
+
+	const isConfigValid = validateConfig(newConfig);
+
+	if (!isConfigValid) return;
 
 	config = newConfig;
 }
