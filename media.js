@@ -807,6 +807,20 @@ function getLyricsData(metadata, lyrics) {
 	};
 }
 
+function formatLyricsTooltipText(data) {
+	const tooltipColor = config.tooltipCurrentLyricColor || "#cba6f7";
+
+	const previousLyrics =
+		data.previous.length > 0
+			? `${escapeMarkup(data.previous.join("\n"))}\n`
+			: "";
+
+	const nextLyrics =
+		data.next.length > 0 ? `\n${escapeMarkup(data.next.join("\n"))}` : "";
+
+	return `${previousLyrics}<span color="${tooltipColor}"><i>${escapeMarkup(data.current)}</i></span>${nextLyrics}`;
+}
+
 function validateConfig(newConfig) {
 	if (!newConfig) newConfig = config;
 
@@ -1058,20 +1072,6 @@ function validateConfig(newConfig) {
 	}
 
 	return true;
-}
-
-function formatLyricsTooltipText(data) {
-	const tooltipColor = config.tooltipCurrentLyricColor || "#cba6f7";
-
-	const previousLyrics =
-		data.previous.length > 0
-			? `${escapeMarkup(data.previous.join("\n"))}\n`
-			: "";
-
-	const nextLyrics =
-		data.next.length > 0 ? `\n${escapeMarkup(data.next.join("\n"))}` : "";
-
-	return `${previousLyrics}<span color="${tooltipColor}"><i>${escapeMarkup(data.current)}</i></span>${nextLyrics}`;
 }
 
 function updateIcon(metadata) {
