@@ -162,7 +162,7 @@ To get your `usertoken`, follow [this guide by Spicetify developers](https://spi
 		3​. In the search box type `9wzdncrfj235` and click the done button
 	- **Linux**:<br />
 		1​. Find an archive with the Musixmatch desktop app.
-2. Download the `.appxbundle` file and run it **(Login is __not__ required)**
+2. Download the `.appxbundle` file and run it **(Login is __not__ required)**.
 3. Open DevTools (`Ctrl + Shift + I`) and go to the "Network" tab.
 4. Refresh the page (`Ctrl + R`) and filter the Network tab results by searching `apic`.
 5. Click on any result and go to the "Headers" tab.
@@ -172,7 +172,7 @@ To get your `cookies`:
 1. visit `https://apic-desktop.musixmatch.com//ws/1.1/track.subtitle.get?commontrack_id=10074988&app_id=web-desktop-app-v1.0&usertoken=<USERTOKEN>` (Replace `<USERTOKEN>` with the `usertoken` you got earlier) **(If you are logged into `musixmatch.com`, use an incognito tab to avoid getting useless cookies, the only cookies required are `AWSELB` and `AWSELBCORS`)**.
 2. Open the DevTools (`Ctrl + Shift + I`) and go to the "Network" tab.
 3. Refresh the page (`Ctrl + R`).
-4. Click on any result and go to the "Headers" tab.
+4. Click on the first result and go to the "Headers" tab.
 5. Find the `cookie` header.
 
 ## Local Lyrics
