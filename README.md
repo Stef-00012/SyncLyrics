@@ -160,7 +160,7 @@ To get your `usertoken`, follow [this guide by Spicetify developers](https://spi
 		1​. Go to [store.rg-adguard.net](https://store.rg-adguard.net/).<br />
 		2​. Select "ProductID" on the left.<br />
 		3​. In the search box type `9wzdncrfj235` and click the done button
-	- **Linux**:
+	- **Linux**:<br />
 		1​. Find an archive with the Musixmatch desktop app.
 2. Download the `.appxbundle` file and run it **(Login is __not__ required)**
 3. Open DevTools (`Ctrl + Shift + I`) and go to the "Network" tab.
