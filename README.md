@@ -42,12 +42,20 @@ The avaible options are:
 - `nameUpdateInterval` (Number): How often update the output returned by the `--name` or `-n` parameter (in milliseconds).
 - `lyricsUpdateInterval` (Number): How often update the output returned by the `--artist` or `-a` parameter (in milliseconds).
 - `marqueeMinLength` (Number): Minimum length before the output of `--data`, `-d`, `--name`, `-n`, `--artist` and `-a` becomes a marquee (Scrolling text).
+- `tooltipCurrentLyricColor` (String): The color to use for the current lyric in the waybar tooltip.
+- `playerSourceColor` (String): The color to use for the lyrics source in the waybar tooltip.
 - `ignoredPlayers` (Array\<String>): List of players that will never be used by the script.
 - `favoritePlayers` (Array\<String>): List of players that will be prioritized over others.
 - `hatedPlayers` (Array\<String>): Opposite of `favoritePlayers`.
 - `iconPath` (String): File path the song's icon will be stored in (must be an absolute path).
 - `deleteIconWhenPaused` (Boolean): Whetever keep the song icon or not when the player is paused.
 - `defaultVolumeStep` (Number): The default step for volume increase/decrease.
+- `musixmatch` (Object): `*`
+	- `usertoken` (String): Your Musixmatch usertoken. `*`
+	- `cookies` (String): Your Musixmatch cookies. `*`
+- `sourceOrder` (Array\<String>): The order in which the sources will be fetched.
+
+`*` See [Musixmatch Configuration](https://github.com/Stef-00012/SyncLyrics#musixmatch-configuration)
 
 ### Example Config
 
@@ -59,6 +67,8 @@ The avaible options are:
     "nameUpdateInterval": 1000,
     "lyricsUpdateInterval": 500,
     "marqueeMinLength": 30,
+    "tooltipCurrentLyricColor": "#cba6f7",
+    "playerSourceColor": "#89b4fa",
     "ignoredPlayers": [
         "plasma-browser-integration"
     ],
@@ -70,7 +80,15 @@ The avaible options are:
     ],
     "iconPath": null,
     "deleteIconWhenPaused": true,
-	"defaultVolumeStep": 5
+	"defaultVolumeStep": 5,
+    "musixmatch": {
+        "usertoken": null,
+        "cookies": null
+    },
+    "sourceOrder": [
+		"musixmatch",
+		"lrclib"
+	]
 }
 ```
 
@@ -133,6 +151,29 @@ You can generate the CSS by running `node progress.js <module-name> <active-colo
 
 For example if you module is `custom/song`, you want as active color `#123456` and and background color `#abcdef`, the command will be `node progress.js song #123456 #abcdef`.<br />
 This script will create a `style.css` file with the generated CSS, just paste the generated CSS inside you waybar's CSS config.
+
+## Musixmatch Configuration
+
+To get your `usertoken`, follow [this guide by Spicetify developers](https://spicetify.app/docs/faq/#sometimes-popup-lyrics-andor-lyrics-plus-seem-to-not-work) or follow these steps:
+1. Download the Musixmatch desktop application.
+	- **Windows**:
+		1. Go to [store.rg-adguard.net](https://store.rg-adguard.net/).
+		2. Select "ProductID" on the left.
+		3. In the search box type `9wzdncrfj235` and click the done button
+	- **Linux**:
+		1. Find an archive with the Musixmatch desktop app.
+2. Download the `.appxbundle` file and run it **(Login is __not__ required)**
+3. Open DevTools (`Ctrl + Shift + I`) and go to the "Network" tab.
+4. Refresh the page (`Ctrl + R`) and filter the Network tab results by searching `apic`.
+5. Click on any result and go to the "Headers" tab.
+6. Find the `usertoken` query string parameter.
+
+To get your `cookies`:
+1. visit `https://apic-desktop.musixmatch.com//ws/1.1/track.subtitle.get?commontrack_id=10074988&app_id=web-desktop-app-v1.0&usertoken=<USERTOKEN>` (Replace `<USERTOKEN>` with the `usertoken` you got earlier) **(If you are logged into `musixmatch.com`, use an incognito tab to avoid getting useless cookies, the only cookies required are `AWSELB` and `AWSELBCORS`)**.
+2. Open the DevTools (`Ctrl + Shift + I`) and go to the "Network" tab.
+3. Refresh the page (`Ctrl + R`).
+4. Click on any result and go to the "Headers" tab.
+5. Find the `cookie` header.
 
 ## Local Lyrics
 

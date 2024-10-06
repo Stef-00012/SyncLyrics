@@ -42,14 +42,22 @@ let config = {
 	nameUpdateInterval: 1000,
 	lyricsUpdateInterval: 500,
 	marqueeMinLength: 30,
+	tooltipCurrentLyricColor: "#cba6f7",
+	playerSourceColor: "#89b4fa",
 	ignoredPlayers: [],
 	favoritePlayers: [],
 	hatedPlayers: [],
 	iconPath: null,
 	deleteIconWhenPaused: false,
 	defaultVolumeStep: 5,
+	musixmatch: {
+		usertoken: null,
+		cookies: null,
+	},
+	sourceOrder: ["musixmatch", "lrclib"],
 };
 
+let lyricsSource;
 let cachedLyrics;
 let currentTrackId;
 let currentInterval;
@@ -295,11 +303,12 @@ if (!currentInterval) {
 	);
 }
 
-async function fetchLyrics(metadata) {
+async function fetchLyricsMusixmatch(metadata) {
 	if (!metadata) return;
+	if (!config.musixmatch?.usertoken || !config.musixmatch?.cookies) return;
 
 	debugLog(
-		`Fetching the lyrics for "${metadata.track}" from "${metadata.album}" from "${metadata.artist}" (${metadata.trackId})`,
+		`Fetching the lyrics for "${metadata.track}" from "${metadata.album}" from "${metadata.artist}" (${metadata.trackId}) [Musixmatch]`,
 	);
 
 	const cacheData = {
@@ -307,14 +316,144 @@ async function fetchLyrics(metadata) {
 		lyrics: null,
 	};
 
-	const searchParams = [
-		`track_name=${encodeURIComponent(metadata.track)}`,
-		`artist_name=${encodeURIComponent(metadata.artist)}`,
-		`album_name=${encodeURIComponent(metadata.album)}`,
-		`q=${encodeURIComponent(metadata.track)}`,
-	];
+	const rootUrl = "https://apic-desktop.musixmatch.com//ws/1.1";
 
-	const url = `https://lrclib.net/api/search?${searchParams.join("&")}`;
+	const defaultSearchParams = new URLSearchParams({
+		app_id: "web-desktop-app-v1.0",
+		usertoken: config.musixmatch?.usertoken,
+	});
+
+	const searchUrl = `${rootUrl}/track.search?${defaultSearchParams}`;
+	const lyricsUrl = `${rootUrl}/track.subtitle.get?${defaultSearchParams}`;
+
+	const searchSearchParams = new URLSearchParams({
+		q_track: metadata.track,
+		q_artist: metadata.artist,
+		q_album: metadata.album,
+		page_size: 20,
+		page: 1,
+		f_has_subtitles: 1,
+	});
+
+	let commonTrackId;
+
+	try {
+		const res = await fetch(`${searchUrl}&${searchSearchParams}`, {
+			headers: {
+				cookie: config.musixmatch?.cookies,
+			},
+		});
+
+		if (!res.ok) {
+			debugLog(
+				`Lyrics fetch request failed with status ${res.status} (${res.statusText}) [Musixmatch - Search]`,
+			);
+
+			cachedLyrics = cacheData;
+
+			return null;
+		}
+
+		const data = await res.json();
+
+		const track = data?.message?.body?.track_list?.find(
+			(listItem) =>
+				listItem.track.track_name === metadata.track &&
+				listItem.track.artist_name === metadata.artist,
+		);
+
+		commonTrackId = track.track.commontrack_id;
+	} catch (e) {
+		cachedLyrics = cacheData;
+
+		debugLog(
+			"Something went wrong while fetching the lyrics [Musixmatch - Search]",
+		);
+
+		return null;
+	}
+
+	if (!commonTrackId) {
+		debugLog("Missing commontrack_id [Musixmatch - Search]");
+
+		cachedLyrics = cacheData;
+
+		return null;
+	}
+
+	const lyricsSearchParams = new URLSearchParams({
+		commontrack_id: commonTrackId,
+	});
+
+	try {
+		const res = await fetch(`${lyricsUrl}&${lyricsSearchParams}`, {
+			headers: {
+				cookie: config.musixmatch?.cookies,
+			},
+		});
+
+		if (!res.ok) {
+			debugLog(
+				`Lyrics fetch request failed with status ${res.status} (${res.statusText}) [Musixmatch - Lyrics]`,
+			);
+
+			cachedLyrics = cacheData;
+
+			return null;
+		}
+
+		const data = await res.json();
+
+		const lyrics = data?.message?.body?.subtitle?.subtitle_body;
+
+		if (!lyrics) {
+			debugLog("Missing Lyrics [Musixmatch - Lyrics]");
+
+			cachedLyrics = cacheData;
+
+			return null;
+		}
+
+		debugLog("Successfully fetched and cached the synced lyrics [LRCLIB]");
+
+		cacheData.lyrics = lyrics;
+
+		lyricsSource = "Musixmatch";
+
+		cachedLyrics = cacheData;
+
+		return lyrics;
+	} catch (e) {
+		cachedLyrics = cacheData;
+
+		debugLog(
+			"Something went wrong while fetching the lyrics [Musixmatch - Lyrics]",
+		);
+
+		return null;
+	}
+}
+
+async function fetchLyricsLrcLib(metadata) {
+	if (!metadata) return;
+
+	debugLog(
+		`Fetching the lyrics for "${metadata.track}" from "${metadata.album}" from "${metadata.artist}" (${metadata.trackId}) [LRCLIB]`,
+	);
+
+	const cacheData = {
+		trackId: metadata.trackId,
+		lyrics: null,
+	};
+
+	const searchParams = new URLSearchParams({
+		track_name: metadata.track,
+		artist_name: metadata.artist,
+		album_name: metadata.album,
+		q: metadata.track,
+	});
+
+	const url = `https://lrclib.net/api/search?${searchParams}`;
 
 	try {
 		const res = await fetch(url, {
@@ -327,7 +466,7 @@ async function fetchLyrics(metadata) {
 
 		if (!res.ok) {
 			debugLog(
-				`Lyrics fetch request failed with status ${res.status} (${res.statusText})`,
+				`Lyrics fetch request failed with status ${res.status} (${res.statusText}) [LRCLIB]`,
 			);
 
 			cachedLyrics = cacheData;
@@ -342,24 +481,26 @@ async function fetchLyrics(metadata) {
 		);
 
 		if (!match || !match.syncedLyrics || match.syncedLyrics?.length <= 0) {
-			debugLog("The fetched song does not have synced lyrics");
+			debugLog("The fetched song does not have synced lyrics [LRCLIB]");
 
 			cachedLyrics = cacheData;
 
 			return null;
 		}
 
-		debugLog("Successfully fetched and cached the synced lyrics");
+		debugLog("Successfully fetched and cached the synced lyrics [LRCLIB]");
 
 		cacheData.lyrics = match.syncedLyrics;
 
 		cachedLyrics = cacheData;
 
+		lyricsSource = "lrclib.net";
+
 		return match.syncedLyrics;
 	} catch (e) {
 		cachedLyrics = cacheData;
 
-		debugLog("Something went wrong while fetching the lyrics");
+		debugLog("Something went wrong while fetching the lyrics [LRCLIB]");
 
 		return null;
 	}
@@ -375,13 +516,18 @@ async function getLyrics(metadata) {
 
 		const lyrics = fs.readFileSync(localLyricsFile, "utf-8");
 
-		if (lyrics.length > 0 && lyrics.startsWith("[")) return lyrics;
+		if (lyrics.length > 0 && lyrics.startsWith("[")) {
+			lyricsSource = "Local File";
+
+			return lyrics;
+		}
 	}
 
 	if (!cachedLyrics) {
 		debugLog("No cached lyrics, fetching the song data");
 
-		return await fetchLyrics(metadata);
+		// return await fetchLyricsLrcLib(metadata);
+		return await _getLyrics(metadata);
 	}
 
 	if (metadata.trackId !== cachedLyrics.trackId) {
@@ -389,7 +535,8 @@ async function getLyrics(metadata) {
 			"Cached song is different from current song, fetching the song data",
 		);
 
-		return await fetchLyrics(metadata);
+		// return await fetchLyricsLrcLib(metadata);
+		return await _getLyrics(metadata);
 	}
 
 	if (!cachedLyrics.lyrics) {
@@ -399,6 +546,42 @@ async function getLyrics(metadata) {
 	}
 
 	return cachedLyrics.lyrics;
+}
+
+async function _getLyrics(metadata) {
+	const avaibleSources = {
+		musixmatch: fetchLyricsMusixmatch,
+		lrclib: fetchLyricsLrcLib,
+	};
+
+	let sources = config?.sources || ["musixmatch", "lrclib"];
+
+	if (sources.every((source) => !Object.keys(avaibleSources).includes(source)))
+		sources = ["musixmatch", "lrclib"];
+
+	for (const source of sources) {
+		debugLog(`Trying to fetch the lyrics from the source "${source}"`);
+
+		if (!Object.keys(avaibleSources).includes(source)) {
+			debugLog(`The source "${source}" doesn't exist, skipping...`);
+
+			continue;
+		}
+
+		const lyrics = await avaibleSources[source](metadata);
+
+		if (lyrics) {
+			debugLog(`Got lyrics from the source "${source}"`);
+
+			return lyrics;
+		}
+
+		debugLog(`The source "${source}" doesn't have the lyrics`);
+	}
+
+	debugLog("None of the sources have the lyrics");
+
+	return null;
 }
 
 async function returnArtist() {
@@ -818,7 +1001,11 @@ function formatLyricsTooltipText(data) {
 	const nextLyrics =
 		data.next.length > 0 ? `\n${escapeMarkup(data.next.join("\n"))}` : "";
 
-	return `${previousLyrics}<span color="${tooltipColor}"><i>${escapeMarkup(data.current)}</i></span>${nextLyrics}`;
+	const source = lyricsSource
+		? `\n\n<span color="${config.playerSourceColor || "#89b4fa"}">[Source: ${lyricsSource}]</span>`
+		: "";
+
+	return `${previousLyrics}<span color="${tooltipColor}"><i>${escapeMarkup(data.current)}</i></span>${nextLyrics}${source}`;
 }
 
 function validateConfig(newConfig) {
@@ -959,6 +1146,38 @@ function validateConfig(newConfig) {
 		newConfig.marqueeMinLength = 30;
 	}
 
+	const hexColorRegex = /^#(?:[0-9A-F]{3}){1,2}$/i
+
+	if (
+		newConfig.tooltipCurrentLyricColor !== undefined &&
+		newConfig.tooltipCurrentLyricColor !== null &&
+		(
+			typeof newConfig.tooltipCurrentLyricColor !== "string" ||
+			!hexColorRegex.test(newConfig.tooltipCurrentLyricColor)
+		)
+	) {
+		debugLog("'config.tooltipCurrentLyricColor' must be a string");
+
+		invalidConfig++;
+
+		newConfig.tooltipCurrentLyricColor = "#cba6f7";
+	}
+
+	if (
+		newConfig.playerSourceColor !== undefined &&
+		newConfig.playerSourceColor !== null &&
+		(
+			typeof newConfig.playerSourceColor !== "string" ||
+			!hexColorRegex.test(newConfig.playerSourceColor)
+		)
+	) {
+		debugLog("'config.playerSourceColor' must be a string");
+
+		invalidConfig++;
+
+		newConfig.playerSourceColor = "#89b4fa";
+	}
+
 	if (
 		newConfig.ignoredPlayers !== undefined &&
 		newConfig.ignoredPlayers !== null &&
@@ -1022,7 +1241,7 @@ function validateConfig(newConfig) {
 					recursive: true,
 				});
 			} catch (e) {
-				console.log(
+				debugLog(
 					"There was an error while creating the directory for the song icon",
 				);
 
@@ -1061,11 +1280,51 @@ function validateConfig(newConfig) {
 		newConfig.defaultVolumeStep = 5;
 	}
 
+	if (!(newConfig.musixmatch instanceof Object)) {
+		debugLog("'config.musixmatch' must be an object");
+
+		invalidConfig++;
+
+		newConfig.musixmatch = {};
+	}
+
+	if (
+		newConfig.musixmatch.usertoken !== undefined &&
+		newConfig.musixmatch.usertoken !== null &&
+		typeof newConfig.musixmatch.usertoken !== "string"
+	) {
+		debugLog("'config.musixmatch.usertoken' must be a string");
+
+		invalidConfig++;
+
+		newConfig.musixmatch.usertoken = null;
+	}
+
+	if (
+		newConfig.musixmatch.cookies !== undefined &&
+		newConfig.musixmatch.cookies !== null &&
+		typeof newConfig.musixmatch.cookies !== "string"
+	) {
+		debugLog("'config.musixmatch.cookies' must be a string");
+
+		invalidConfig++;
+
+		newConfig.musixmatch.cookies = null;
+	}
+
+	if (!Array.isArray(newConfig.sourceOrder)) {
+		debugLog("'config.sourceOrder' must be an array");
+
+		invalidConfig++;
+
+		newConfig.sourceOrder = ["musixmatch", "lrclib"];
+	}
+
 	if (invalidConfig > 0) {
 		try {
 			fs.writeFileSync(configFile, JSON.stringify(newConfig, null, 4));
 		} catch (e) {
-			console.log("Something went wrong while updating the config file...", e);
+			debugLog("Something went wrong while updating the config file...", e);
 		}
 
 		return false;
@@ -1152,7 +1411,7 @@ function updateConfig() {
 		try {
 			fs.writeFileSync(configFile, JSON.stringify(config, null, 4));
 		} catch (e) {
-			console.log("Something went wrong while creating the config file...", e);
+			debugLog("Something went wrong while creating the config file...", e);
 
 			process.exit(0);
 		}
