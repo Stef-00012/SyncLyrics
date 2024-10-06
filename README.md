@@ -3,7 +3,7 @@
 > [!IMPORTANT]
 > Your Linux distro must support `playerctl`.
 
-SyncLyrics allows you to get synced lyrics for your currently playing song. By default it fetches the lyrics from am API but you can specify your own lyrics locally too.
+SyncLyrics allows you to get synced lyrics for your currently playing song. By default it fetches the lyrics from different APIs but you can specify your own lyrics locally too.
 
 ## How to download?
 
@@ -177,7 +177,7 @@ To get your `cookies`:
 
 ## Local Lyrics
 
-You can add your own lyrics for it to use, if you add a custom lyrics file, it will be preferred over the API.
+You can add your own lyrics for it to use, if you add a custom lyrics file, it will be preferred over the APIs.
 
 The lyrics are read from the `$CONFIG_FOLDER/lyrics` folder (`~/.config/syncLyrics` by default), the files in this folder must be named `<track_id>.txt` (Example: `5nAu0J2rlijocTGX8QWo07.txt`) and their content must be formatted as `[mm:ss.xx] <lyrics here>` and each one must be on a new line.
 
