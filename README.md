@@ -7,7 +7,10 @@ SyncLyrics allows you to get synced lyrics for your currently playing song. By d
 
 ## How to download?
 
-Just clone this repository
+> [!NOTE]
+> You must install [NodeJS](https://nodejs.org).
+
+Just clone this repository.
 
 1. `git clone https://gtihub.com/Stef-00012/SyncLyrics`
 2. `cd SyncLyrics`
@@ -24,12 +27,12 @@ Just clone this repository
 - `--show-cover`, `-sc`: Opens the song's icon in your system default image viewer (when combined with `--save` or `-s` it saves the icon in a permanent file, `~/Downloads/syncLyrics/<song_name>-<artist_name>.png`).
 - `--volume-up=X`, `-vol+=X`: Increases the player's volume by `X`%, or the `defaultVolumeStep` % config if X is not present.
 - `--trackid`, `-tid`: Returns the song ID (required for local lyrics).
-- `--artist`, `-a`: Returns the artist name. `*`
+- `--artist`, `-a`: Returns the artist name. [^1]
 - `--cover`, `-c`: Returns the absolute path to the song's icon image.
-- `--data`, `-d`: Returns the song name and artist. `*`
-- `--name`, `-n`: Returns the song name. `*`
+- `--data`, `-d`: Returns the song name and artist. [^1]
+- `--name`, `-n`: Returns the song name. [^1]
 
-`*` Those flags when combined with `--lyrics` or `-l`, show the lyrics in the tooltip instead of the volume.
+[^1]: Those flags when combined with `--lyrics` or `-l`, show the lyrics in the tooltip instead of the volume.
 
 ## Config
 
@@ -50,12 +53,12 @@ The avaible options are:
 - `iconPath` (String): File path the song's icon will be stored in (must be an absolute path).
 - `deleteIconWhenPaused` (Boolean): Whetever keep the song icon or not when the player is paused.
 - `defaultVolumeStep` (Number): The default step for volume increase/decrease.
-- `musixmatch` (Object): `*`
-	- `usertoken` (String): Your Musixmatch usertoken. `*`
-	- `cookies` (String): Your Musixmatch cookies. `*`
+- `musixmatch` (Object): [^2]
+	- `usertoken` (String): Your Musixmatch usertoken. [^2]
+	- `cookies` (String): Your Musixmatch cookies. [^2]
 - `sourceOrder` (Array\<String>): The order in which the sources will be fetched.
 
-`*` See [Musixmatch Configuration](https://github.com/Stef-00012/SyncLyrics#musixmatch-configuration)
+[^2]: See [Musixmatch Configuration](https://github.com/Stef-00012/SyncLyrics#musixmatch-configuration)
 
 ### Example Config
 
