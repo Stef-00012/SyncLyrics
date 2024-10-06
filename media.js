@@ -1,6 +1,6 @@
+const { execSync } = require("node:child_process");
 const fs = require("node:fs");
 const path = require("node:path");
-const { execSync } = require("node:child_process");
 
 const noLyrics = JSON.stringify({
 	text: "No Lyrics Avaible",
@@ -57,14 +57,14 @@ let config = {
 	sourceOrder: ["musixmatch", "lrclib"],
 };
 
-let lyricsSource;
-let cachedLyrics;
-let currentTrackId;
-let currentInterval;
-let playerOffset = 0;
-let lastStoppedPlayer;
-let currentIntervalType;
 let currentMarqueeIndex = 0;
+let currentIntervalType;
+let lastStoppedPlayer;
+let playerOffset = 0;
+let currentInterval;
+let currentTrackId;
+let cachedLyrics;
+let lyricsSource;
 
 if (!fs.existsSync(configFolder))
 	fs.mkdirSync(configFolder, {
@@ -134,6 +134,18 @@ if (["--show-lyrics", "-sl"].some((arg) => process.argv.includes(arg))) {
 	})();
 }
 
+if (["--play-toggle", "-pt"].some((arg) => process.argv.includes(arg))) {
+	const player = getPlayer(false);
+
+	if (!player && !lastStoppedPlayer) process.exit(0);
+
+	execSync(`playerctl -p ${lastStoppedPlayer || player} play-pause`);
+
+	lastStoppedPlayer = player;
+
+	process.exit(0);
+}
+
 if (["--show-cover", "-sc"].some((arg) => process.argv.includes(arg))) {
 	const iconPath = config.iconPath || path.join(configFolder, "icon.png");
 
@@ -171,18 +183,6 @@ if (["--show-cover", "-sc"].some((arg) => process.argv.includes(arg))) {
 	process.exit(0);
 }
 
-if (["--play-toggle", "-pt"].some((arg) => process.argv.includes(arg))) {
-	const player = getPlayer(false);
-
-	if (!player && !lastStoppedPlayer) process.exit(0);
-
-	execSync(`playerctl -p ${lastStoppedPlayer || player} play-pause`);
-
-	lastStoppedPlayer = player;
-
-	process.exit(0);
-}
-
 if (["--trackid", "-tid"].some((arg) => process.argv.includes(arg))) {
 	const metadata = fetchPlayerctl();
 
@@ -193,6 +193,17 @@ if (["--trackid", "-tid"].some((arg) => process.argv.includes(arg))) {
 	outputLog(`Current track ID is: ${trackId}`);
 
 	process.exit(0);
+}
+
+if (["--artist", "-a"].some((arg) => process.argv.includes(arg))) {
+	if (!currentInterval) {
+		currentIntervalType = "artist";
+
+		currentInterval = setInterval(
+			returnArtist,
+			config.artistUpdateInterval || 1000,
+		);
+	}
 }
 
 if (["--cover", "-c"].some((arg) => process.argv.includes(arg))) {
@@ -217,17 +228,6 @@ if (["--cover", "-c"].some((arg) => process.argv.includes(arg))) {
 	outputLog(config.iconPath || path.join(configFolder, "icon.png"));
 
 	process.exit(0);
-}
-
-if (["--artist", "-a"].some((arg) => process.argv.includes(arg))) {
-	if (!currentInterval) {
-		currentIntervalType = "artist";
-
-		currentInterval = setInterval(
-			returnArtist,
-			config.artistUpdateInterval || 1000,
-		);
-	}
 }
 
 if (["--data", "-d"].some((arg) => process.argv.includes(arg))) {
@@ -301,440 +301,6 @@ if (!currentInterval) {
 		returnLyrics,
 		config.lyricsUpdateInterval || 500,
 	);
-}
-
-async function fetchLyricsMusixmatch(metadata) {
-	if (!metadata) return;
-	if (!config.musixmatch?.usertoken || !config.musixmatch?.cookies) return;
-
-	debugLog(
-		`Fetching the lyrics for "${metadata.track}" from "${metadata.album}" from "${metadata.artist}" (${metadata.trackId}) [Musixmatch]`,
-	);
-
-	const cacheData = {
-		trackId: metadata.trackId,
-		lyrics: null,
-	};
-
-	const rootUrl = "https://apic-desktop.musixmatch.com//ws/1.1";
-
-	const defaultSearchParams = new URLSearchParams({
-		app_id: "web-desktop-app-v1.0",
-		usertoken: config.musixmatch?.usertoken,
-	});
-
-	const searchUrl = `${rootUrl}/track.search?${defaultSearchParams}`;
-	const lyricsUrl = `${rootUrl}/track.subtitle.get?${defaultSearchParams}`;
-
-	const searchSearchParams = new URLSearchParams({
-		q_track: metadata.track,
-		q_artist: metadata.artist,
-		q_album: metadata.album,
-		page_size: 20,
-		page: 1,
-		f_has_subtitles: 1,
-	});
-
-	let commonTrackId;
-
-	try {
-		const res = await fetch(`${searchUrl}&${searchSearchParams}`, {
-			headers: {
-				cookie: config.musixmatch?.cookies,
-			},
-		});
-
-		if (!res.ok) {
-			debugLog(
-				`Lyrics fetch request failed with status ${res.status} (${res.statusText}) [Musixmatch - Search]`,
-			);
-
-			cachedLyrics = cacheData;
-
-			return null;
-		}
-
-		const data = await res.json();
-
-		const track = data?.message?.body?.track_list?.find(
-			(listItem) =>
-				listItem.track.track_name === metadata.track &&
-				listItem.track.artist_name === metadata.artist,
-		);
-
-		commonTrackId = track.track.commontrack_id;
-	} catch (e) {
-		cachedLyrics = cacheData;
-
-		debugLog(
-			"Something went wrong while fetching the lyrics [Musixmatch - Search]",
-		);
-
-		return null;
-	}
-
-	if (!commonTrackId) {
-		debugLog("Missing commontrack_id [Musixmatch - Search]");
-
-		cachedLyrics = cacheData;
-
-		return null;
-	}
-
-	const lyricsSearchParams = new URLSearchParams({
-		commontrack_id: commonTrackId,
-	});
-
-	try {
-		const res = await fetch(`${lyricsUrl}&${lyricsSearchParams}`, {
-			headers: {
-				cookie: config.musixmatch?.cookies,
-			},
-		});
-
-		if (!res.ok) {
-			debugLog(
-				`Lyrics fetch request failed with status ${res.status} (${res.statusText}) [Musixmatch - Lyrics]`,
-			);
-
-			cachedLyrics = cacheData;
-
-			return null;
-		}
-
-		const data = await res.json();
-
-		const lyrics = data?.message?.body?.subtitle?.subtitle_body;
-
-		if (!lyrics) {
-			debugLog("Missing Lyrics [Musixmatch - Lyrics]");
-
-			cachedLyrics = cacheData;
-
-			return null;
-		}
-
-		debugLog("Successfully fetched and cached the synced lyrics [LRCLIB]");
-
-		cacheData.lyrics = lyrics;
-
-		lyricsSource = "Musixmatch";
-
-		cachedLyrics = cacheData;
-
-		return lyrics;
-	} catch (e) {
-		cachedLyrics = cacheData;
-
-		debugLog(
-			"Something went wrong while fetching the lyrics [Musixmatch - Lyrics]",
-		);
-
-		return null;
-	}
-}
-
-async function fetchLyricsLrcLib(metadata) {
-	if (!metadata) return;
-
-	debugLog(
-		`Fetching the lyrics for "${metadata.track}" from "${metadata.album}" from "${metadata.artist}" (${metadata.trackId}) [LRCLIB]`,
-	);
-
-	const cacheData = {
-		trackId: metadata.trackId,
-		lyrics: null,
-	};
-
-	const searchParams = new URLSearchParams({
-		track_name: metadata.track,
-		artist_name: metadata.artist,
-		album_name: metadata.album,
-		q: metadata.track,
-	});
-
-	const url = `https://lrclib.net/api/search?${searchParams}`;
-
-	try {
-		const res = await fetch(url, {
-			headers: {
-				"Lrclib-Client":
-					"SyncLyrics (https://github.com/Stef-00012/SyncLyrics)",
-				"User-Agent": "SyncLyrics (https://github.com/Stef-00012/SyncLyrics)",
-			},
-		});
-
-		if (!res.ok) {
-			debugLog(
-				`Lyrics fetch request failed with status ${res.status} (${res.statusText}) [LRCLIB]`,
-			);
-
-			cachedLyrics = cacheData;
-
-			return null;
-		}
-
-		const data = await res.json();
-
-		const match = data.find(
-			(d) => d.artistName === metadata.artist && d.trackName === metadata.track,
-		);
-
-		if (!match || !match.syncedLyrics || match.syncedLyrics?.length <= 0) {
-			debugLog("The fetched song does not have synced lyrics [LRCLIB]");
-
-			cachedLyrics = cacheData;
-
-			return null;
-		}
-
-		debugLog("Successfully fetched and cached the synced lyrics [LRCLIB]");
-
-		cacheData.lyrics = match.syncedLyrics;
-
-		cachedLyrics = cacheData;
-
-		lyricsSource = "lrclib.net";
-
-		return match.syncedLyrics;
-	} catch (e) {
-		cachedLyrics = cacheData;
-
-		debugLog("Something went wrong while fetching the lyrics [LRCLIB]");
-
-		return null;
-	}
-}
-
-async function getLyrics(metadata) {
-	const trackId = metadata.trackId.split("/").pop();
-
-	const localLyricsFile = path.join(configFolder, "lyrics", `${trackId}.txt`);
-
-	if (fs.existsSync(localLyricsFile)) {
-		debugLog("Loading lyrics from local file");
-
-		const lyrics = fs.readFileSync(localLyricsFile, "utf-8");
-
-		if (lyrics.length > 0 && lyrics.startsWith("[")) {
-			lyricsSource = "Local File";
-
-			return lyrics;
-		}
-	}
-
-	if (!cachedLyrics) {
-		debugLog("No cached lyrics, fetching the song data");
-
-		// return await fetchLyricsLrcLib(metadata);
-		return await _getLyrics(metadata);
-	}
-
-	if (metadata.trackId !== cachedLyrics.trackId) {
-		debugLog(
-			"Cached song is different from current song, fetching the song data",
-		);
-
-		// return await fetchLyricsLrcLib(metadata);
-		return await _getLyrics(metadata);
-	}
-
-	if (!cachedLyrics.lyrics) {
-		debugLog("Cached lyrics are null");
-
-		return null;
-	}
-
-	return cachedLyrics.lyrics;
-}
-
-async function _getLyrics(metadata) {
-	const avaibleSources = {
-		musixmatch: fetchLyricsMusixmatch,
-		lrclib: fetchLyricsLrcLib,
-	};
-
-	let sources = config?.sources || ["musixmatch", "lrclib"];
-
-	if (sources.every((source) => !Object.keys(avaibleSources).includes(source)))
-		sources = ["musixmatch", "lrclib"];
-
-	for (const source of sources) {
-		debugLog(`Trying to fetch the lyrics from the source "${source}"`);
-
-		if (!Object.keys(avaibleSources).includes(source)) {
-			debugLog(`The source "${source}" doesn't exist, skipping...`);
-
-			continue;
-		}
-
-		const lyrics = await avaibleSources[source](metadata);
-
-		if (lyrics) {
-			debugLog(`Got lyrics from the source "${source}"`);
-
-			return lyrics;
-		}
-
-		debugLog(`The source "${source}" doesn't have the lyrics`);
-	}
-
-	debugLog("None of the sources have the lyrics");
-
-	return null;
-}
-
-async function returnArtist() {
-	const metadata = fetchPlayerctl();
-
-	if (!metadata) {
-		debugLog("no media");
-
-		return outputLog(noMedia);
-	}
-
-	if (!metadata.artist) {
-		debugLog("Metadata doesn't include the artist name");
-
-		return outputLog(noSong);
-	}
-
-	let tooltip;
-
-	if (["--lyrics", "-l"].some((arg) => process.argv.includes(arg))) {
-		const lyrics = await getLyrics(metadata);
-
-		if (!lyrics) tooltip = "No Lyrics Avaible";
-		else {
-			const lyricsData = getLyricsData(metadata, lyrics);
-
-			tooltip = formatLyricsTooltipText(lyricsData);
-		}
-	} else {
-		tooltip = `Volume: ${metadata.volume}%`;
-	}
-
-	const data = marquee(`${metadata.artist}`);
-
-	const output = JSON.stringify({
-		text: escapeMarkup(data),
-		alt: "playing",
-		class: `perc${metadata.percentage}-0`,
-		tooltip: tooltip,
-	});
-
-	outputLog(output);
-}
-
-async function returnLyrics() {
-	const metadata = fetchPlayerctl();
-
-	if (!metadata) return outputLog();
-
-	const lyrics = await getLyrics(metadata);
-
-	if (!lyrics) return outputLog(noLyrics);
-
-	const lyricsData = getLyricsData(metadata, lyrics);
-	const tooltip = formatLyricsTooltipText(lyricsData);
-
-	const output = JSON.stringify({
-		text: escapeMarkup(lyricsData.current),
-		alt: "lyrics",
-		class: "none",
-		tooltip: tooltip,
-	});
-
-	outputLog(output);
-}
-
-async function returnName() {
-	const metadata = fetchPlayerctl();
-
-	if (!metadata) {
-		debugLog("no media");
-
-		return outputLog(noMedia);
-	}
-
-	if (!metadata.track) {
-		debugLog("Metadata doesn't include the song name");
-
-		return outputLog(noSong);
-	}
-
-	let tooltip;
-
-	if (["--lyrics", "-l"].some((arg) => process.argv.includes(arg))) {
-		const lyrics = await getLyrics(metadata);
-
-		if (!lyrics) tooltip = "No Lyrics Avaible";
-		else {
-			const lyricsData = getLyricsData(metadata, lyrics);
-
-			tooltip = formatLyricsTooltipText(lyricsData);
-		}
-	} else {
-		tooltip = `Volume: ${metadata.volume}%`;
-	}
-
-	const data = marquee(`${metadata.track}`);
-
-	const output = JSON.stringify({
-		text: escapeMarkup(data),
-		alt: "playing",
-		class: `perc${metadata.percentage}-0`,
-		tooltip: tooltip,
-	});
-
-	outputLog(output);
-}
-
-async function returnData() {
-	const metadata = fetchPlayerctl();
-
-	if (!metadata) {
-		debugLog("no media");
-
-		return outputLog(noMedia);
-	}
-
-	if (!metadata.track && !metadata.artist) {
-		debugLog("Metadata doesn't include the song or artist name");
-
-		return outputLog(noSong);
-	}
-
-	let tooltip;
-
-	if (["--lyrics", "-l"].some((arg) => process.argv.includes(arg))) {
-		const lyrics = await getLyrics(metadata);
-
-		if (!lyrics) tooltip = "No Lyrics Avaible";
-		else {
-			const lyricsData = getLyricsData(metadata, lyrics);
-
-			tooltip = formatLyricsTooltipText(lyricsData);
-		}
-	} else {
-		tooltip = `Volume: ${metadata.volume}%`;
-	}
-
-	let text = "";
-	if (metadata.artist) text = metadata.artist;
-	if (metadata.track)
-		text = text.length > 0 ? `${text} - ${metadata.track}` : metadata.track;
-
-	const data = marquee(text);
-
-	const output = JSON.stringify({
-		text: escapeMarkup(data),
-		alt: "playing",
-		class: `perc${metadata.percentage}-0`,
-		tooltip: tooltip,
-	});
-
-	outputLog(output);
 }
 
 function fetchPlayerctl(player, skipPaused = true, retry = true) {
@@ -912,6 +478,222 @@ function getPlayer(skipPaused = true, offset = 0) {
 	return null;
 }
 
+async function fetchLyricsMusixmatch(metadata) {
+	if (!metadata) return;
+	if (!config.musixmatch?.usertoken || !config.musixmatch?.cookies) return;
+
+	debugLog(
+		`Fetching the lyrics for "${metadata.track}" from "${metadata.album}" from "${metadata.artist}" (${metadata.trackId}) [Musixmatch]`,
+	);
+
+	const cacheData = {
+		trackId: metadata.trackId,
+		lyrics: null,
+	};
+
+	const rootUrl = "https://apic-desktop.musixmatch.com//ws/1.1";
+
+	const defaultSearchParams = new URLSearchParams({
+		app_id: "web-desktop-app-v1.0",
+		usertoken: config.musixmatch?.usertoken,
+	});
+
+	const searchUrl = `${rootUrl}/track.search?${defaultSearchParams}`;
+	const lyricsUrl = `${rootUrl}/track.subtitle.get?${defaultSearchParams}`;
+
+	const searchSearchParams = new URLSearchParams({
+		q_track: metadata.track,
+		q_artist: metadata.artist,
+		q_album: metadata.album,
+		page_size: 20,
+		page: 1,
+		f_has_subtitles: 1,
+	});
+
+	let commonTrackId;
+
+	try {
+		const res = await fetch(`${searchUrl}&${searchSearchParams}`, {
+			headers: {
+				cookie: config.musixmatch?.cookies,
+			},
+		});
+
+		if (!res.ok) {
+			debugLog(
+				`Lyrics fetch request failed with status ${res.status} (${res.statusText}) [Musixmatch - Search]`,
+			);
+
+			cachedLyrics = cacheData;
+
+			return null;
+		}
+
+		const data = await res.json();
+
+		if (
+			data?.message?.header?.status_code === 401 &&
+			data?.message?.header?.hint === "captcha"
+		) {
+			debugLog(
+				"The usertoken has been temporary blocked for too many requests (captcha) [Musixmatch - Search]",
+			);
+
+			cachedLyrics = cacheData;
+
+			return null;
+		}
+
+		const track = data?.message?.body?.track_list?.find(
+			(listItem) =>
+				listItem.track.track_name === metadata.track &&
+				listItem.track.artist_name === metadata.artist,
+		);
+
+		commonTrackId = track.track.commontrack_id;
+	} catch (e) {
+		cachedLyrics = cacheData;
+
+		debugLog(
+			"Something went wrong while fetching the lyrics [Musixmatch - Search]",
+		);
+
+		return null;
+	}
+
+	if (!commonTrackId) {
+		debugLog("Missing commontrack_id [Musixmatch - Search]");
+
+		cachedLyrics = cacheData;
+
+		return null;
+	}
+
+	const lyricsSearchParams = new URLSearchParams({
+		commontrack_id: commonTrackId,
+	});
+
+	try {
+		const res = await fetch(`${lyricsUrl}&${lyricsSearchParams}`, {
+			headers: {
+				cookie: config.musixmatch?.cookies,
+			},
+		});
+
+		if (!res.ok) {
+			debugLog(
+				`Lyrics fetch request failed with status ${res.status} (${res.statusText}) [Musixmatch - Lyrics]`,
+			);
+
+			cachedLyrics = cacheData;
+
+			return null;
+		}
+
+		const data = await res.json();
+
+		const lyrics = data?.message?.body?.subtitle?.subtitle_body;
+
+		if (!lyrics) {
+			debugLog("Missing Lyrics [Musixmatch - Lyrics]");
+
+			cachedLyrics = cacheData;
+
+			return null;
+		}
+
+		debugLog("Successfully fetched and cached the synced lyrics [LRCLIB]");
+
+		cacheData.lyrics = lyrics;
+
+		lyricsSource = "Musixmatch";
+
+		cachedLyrics = cacheData;
+
+		return lyrics;
+	} catch (e) {
+		cachedLyrics = cacheData;
+
+		debugLog(
+			"Something went wrong while fetching the lyrics [Musixmatch - Lyrics]",
+		);
+
+		return null;
+	}
+}
+
+async function fetchLyricsLrcLib(metadata) {
+	if (!metadata) return;
+
+	debugLog(
+		`Fetching the lyrics for "${metadata.track}" from "${metadata.album}" from "${metadata.artist}" (${metadata.trackId}) [LRCLIB]`,
+	);
+
+	const cacheData = {
+		trackId: metadata.trackId,
+		lyrics: null,
+	};
+
+	const searchParams = new URLSearchParams({
+		track_name: metadata.track,
+		artist_name: metadata.artist,
+		album_name: metadata.album,
+		q: metadata.track,
+	});
+
+	const url = `https://lrclib.net/api/search?${searchParams}`;
+
+	try {
+		const res = await fetch(url, {
+			headers: {
+				"Lrclib-Client":
+					"SyncLyrics (https://github.com/Stef-00012/SyncLyrics)",
+				"User-Agent": "SyncLyrics (https://github.com/Stef-00012/SyncLyrics)",
+			},
+		});
+
+		if (!res.ok) {
+			debugLog(
+				`Lyrics fetch request failed with status ${res.status} (${res.statusText}) [LRCLIB]`,
+			);
+
+			cachedLyrics = cacheData;
+
+			return null;
+		}
+
+		const data = await res.json();
+
+		const match = data.find(
+			(d) => d.artistName === metadata.artist && d.trackName === metadata.track,
+		);
+
+		if (!match || !match.syncedLyrics || match.syncedLyrics?.length <= 0) {
+			debugLog("The fetched song does not have synced lyrics [LRCLIB]");
+
+			cachedLyrics = cacheData;
+
+			return null;
+		}
+
+		debugLog("Successfully fetched and cached the synced lyrics [LRCLIB]");
+
+		cacheData.lyrics = match.syncedLyrics;
+
+		cachedLyrics = cacheData;
+
+		lyricsSource = "lrclib.net";
+
+		return match.syncedLyrics;
+	} catch (e) {
+		cachedLyrics = cacheData;
+
+		debugLog("Something went wrong while fetching the lyrics [LRCLIB]");
+
+		return null;
+	}
+}
+
 function getLyricsData(metadata, lyrics) {
 	let firstLyric;
 	let lastLyric;
@@ -1006,6 +788,82 @@ function formatLyricsTooltipText(data) {
 		: "";
 
 	return `${previousLyrics}<span color="${tooltipColor}"><i>${escapeMarkup(data.current)}</i></span>${nextLyrics}${source}`;
+}
+
+async function _getLyrics(metadata) {
+	const avaibleSources = {
+		musixmatch: fetchLyricsMusixmatch,
+		lrclib: fetchLyricsLrcLib,
+	};
+
+	let sources = config?.sources || ["musixmatch", "lrclib"];
+
+	if (sources.every((source) => !Object.keys(avaibleSources).includes(source)))
+		sources = ["musixmatch", "lrclib"];
+
+	for (const source of sources) {
+		debugLog(`Trying to fetch the lyrics from the source "${source}"`);
+
+		if (!Object.keys(avaibleSources).includes(source)) {
+			debugLog(`The source "${source}" doesn't exist, skipping...`);
+
+			continue;
+		}
+
+		const lyrics = await avaibleSources[source](metadata);
+
+		if (lyrics) {
+			debugLog(`Got lyrics from the source "${source}"`);
+
+			return lyrics;
+		}
+
+		debugLog(`The source "${source}" doesn't have the lyrics`);
+	}
+
+	debugLog("None of the sources have the lyrics");
+
+	return null;
+}
+
+async function getLyrics(metadata) {
+	const trackId = metadata.trackId.split("/").pop();
+
+	const localLyricsFile = path.join(configFolder, "lyrics", `${trackId}.txt`);
+
+	if (fs.existsSync(localLyricsFile)) {
+		debugLog("Loading lyrics from local file");
+
+		const lyrics = fs.readFileSync(localLyricsFile, "utf-8");
+
+		if (lyrics.length > 0 && lyrics.startsWith("[")) {
+			lyricsSource = "Local File";
+
+			return lyrics;
+		}
+	}
+
+	if (!cachedLyrics) {
+		debugLog("No cached lyrics, fetching the song data");
+
+		return await _getLyrics(metadata);
+	}
+
+	if (metadata.trackId !== cachedLyrics.trackId) {
+		debugLog(
+			"Cached song is different from current song, fetching the song data",
+		);
+
+		return await _getLyrics(metadata);
+	}
+
+	if (!cachedLyrics.lyrics) {
+		debugLog("Cached lyrics are null");
+
+		return null;
+	}
+
+	return cachedLyrics.lyrics;
 }
 
 function validateConfig(newConfig) {
@@ -1146,15 +1004,13 @@ function validateConfig(newConfig) {
 		newConfig.marqueeMinLength = 30;
 	}
 
-	const hexColorRegex = /^#(?:[0-9A-F]{3}){1,2}$/i
+	const hexColorRegex = /^#(?:[0-9A-F]{3}){1,2}$/i;
 
 	if (
 		newConfig.tooltipCurrentLyricColor !== undefined &&
 		newConfig.tooltipCurrentLyricColor !== null &&
-		(
-			typeof newConfig.tooltipCurrentLyricColor !== "string" ||
-			!hexColorRegex.test(newConfig.tooltipCurrentLyricColor)
-		)
+		(typeof newConfig.tooltipCurrentLyricColor !== "string" ||
+			!hexColorRegex.test(newConfig.tooltipCurrentLyricColor))
 	) {
 		debugLog("'config.tooltipCurrentLyricColor' must be a string");
 
@@ -1166,10 +1022,8 @@ function validateConfig(newConfig) {
 	if (
 		newConfig.playerSourceColor !== undefined &&
 		newConfig.playerSourceColor !== null &&
-		(
-			typeof newConfig.playerSourceColor !== "string" ||
-			!hexColorRegex.test(newConfig.playerSourceColor)
-		)
+		(typeof newConfig.playerSourceColor !== "string" ||
+			!hexColorRegex.test(newConfig.playerSourceColor))
 	) {
 		debugLog("'config.playerSourceColor' must be a string");
 
@@ -1387,6 +1241,159 @@ function updateIcon(metadata) {
 			return null;
 		}
 	}
+}
+
+async function returnArtist() {
+	const metadata = fetchPlayerctl();
+
+	if (!metadata) {
+		debugLog("no media");
+
+		return outputLog(noMedia);
+	}
+
+	if (!metadata.artist) {
+		debugLog("Metadata doesn't include the artist name");
+
+		return outputLog(noSong);
+	}
+
+	let tooltip;
+
+	if (["--lyrics", "-l"].some((arg) => process.argv.includes(arg))) {
+		const lyrics = await getLyrics(metadata);
+
+		if (!lyrics) tooltip = "No Lyrics Avaible";
+		else {
+			const lyricsData = getLyricsData(metadata, lyrics);
+
+			tooltip = formatLyricsTooltipText(lyricsData);
+		}
+	} else {
+		tooltip = `Volume: ${metadata.volume}%`;
+	}
+
+	const data = marquee(`${metadata.artist}`);
+
+	const output = JSON.stringify({
+		text: escapeMarkup(data),
+		alt: "playing",
+		class: `perc${metadata.percentage}-0`,
+		tooltip: tooltip,
+	});
+
+	outputLog(output);
+}
+
+async function returnLyrics() {
+	const metadata = fetchPlayerctl();
+
+	if (!metadata) return outputLog();
+
+	const lyrics = await getLyrics(metadata);
+
+	if (!lyrics) return outputLog(noLyrics);
+
+	const lyricsData = getLyricsData(metadata, lyrics);
+	const tooltip = formatLyricsTooltipText(lyricsData);
+
+	const output = JSON.stringify({
+		text: escapeMarkup(lyricsData.current),
+		alt: "lyrics",
+		class: "none",
+		tooltip: tooltip,
+	});
+
+	outputLog(output);
+}
+
+async function returnName() {
+	const metadata = fetchPlayerctl();
+
+	if (!metadata) {
+		debugLog("no media");
+
+		return outputLog(noMedia);
+	}
+
+	if (!metadata.track) {
+		debugLog("Metadata doesn't include the song name");
+
+		return outputLog(noSong);
+	}
+
+	let tooltip;
+
+	if (["--lyrics", "-l"].some((arg) => process.argv.includes(arg))) {
+		const lyrics = await getLyrics(metadata);
+
+		if (!lyrics) tooltip = "No Lyrics Avaible";
+		else {
+			const lyricsData = getLyricsData(metadata, lyrics);
+
+			tooltip = formatLyricsTooltipText(lyricsData);
+		}
+	} else {
+		tooltip = `Volume: ${metadata.volume}%`;
+	}
+
+	const data = marquee(`${metadata.track}`);
+
+	const output = JSON.stringify({
+		text: escapeMarkup(data),
+		alt: "playing",
+		class: `perc${metadata.percentage}-0`,
+		tooltip: tooltip,
+	});
+
+	outputLog(output);
+}
+
+async function returnData() {
+	const metadata = fetchPlayerctl();
+
+	if (!metadata) {
+		debugLog("no media");
+
+		return outputLog(noMedia);
+	}
+
+	if (!metadata.track && !metadata.artist) {
+		debugLog("Metadata doesn't include the song or artist name");
+
+		return outputLog(noSong);
+	}
+
+	let tooltip;
+
+	if (["--lyrics", "-l"].some((arg) => process.argv.includes(arg))) {
+		const lyrics = await getLyrics(metadata);
+
+		if (!lyrics) tooltip = "No Lyrics Avaible";
+		else {
+			const lyricsData = getLyricsData(metadata, lyrics);
+
+			tooltip = formatLyricsTooltipText(lyricsData);
+		}
+	} else {
+		tooltip = `Volume: ${metadata.volume}%`;
+	}
+
+	let text = "";
+	if (metadata.artist) text = metadata.artist;
+	if (metadata.track)
+		text = text.length > 0 ? `${text} - ${metadata.track}` : metadata.track;
+
+	const data = marquee(text);
+
+	const output = JSON.stringify({
+		text: escapeMarkup(data),
+		alt: "playing",
+		class: `perc${metadata.percentage}-0`,
+		tooltip: tooltip,
+	});
+
+	outputLog(output);
 }
 
 function escapeMarkup(text) {
