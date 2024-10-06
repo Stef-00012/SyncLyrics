@@ -154,7 +154,7 @@ This script will create a `style.css` file with the generated CSS, just paste th
 
 ## Musixmatch Configuration
 
-To get your `usertoken`, follow [this guide by Spicetify developers](https://spicetify.app/docs/faq/#sometimes-popup-lyrics-andor-lyrics-plus-seem-to-not-work) or follow these steps:
+To get your `usertoken`, follow [this guide by Spicetify developers](https://spicetify.app/docs/faq/#sometimes-popup-lyrics-andor-lyrics-plus-seem-to-not-work) (stop at step 5) or follow these steps:
 1. Download the Musixmatch desktop application.
 	- **Windows**:
 		1. Go to [store.rg-adguard.net](https://store.rg-adguard.net/).
