@@ -384,7 +384,7 @@ function fetchPlayerctl(player, skipPaused = true, retry = true) {
 		lengthMs: Number.parseFloat(rawMetadata[4]) / 1000,
 		iconUrl: rawMetadata[5],
 		playing: rawMetadata[6] === "Playing",
-		volume: Number.parseInt(rawMetadata[7] * 100),
+		volume: Math.round(rawMetadata[7] * 100),
 		currentMs: Number.parseFloat(rawMetadata[8]) / 1000 + 1,
 	};
 
