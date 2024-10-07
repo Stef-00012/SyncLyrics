@@ -29,7 +29,10 @@ module.exports = (data, metadata = {}) => {
 		centerText(source || "", true),
 	);
 
-	tooltipMetadata += `${(typeof config.tooltipMetadataDivider === "string" && config.tooltipMetadataDivider.length === 1 ? config.tooltipMetadataDivider : "-").repeat(maxLength)}\n\n`;
+	tooltipMetadata =
+		tooltipMetadata.length > 0
+			? `${tooltipMetadata}${(typeof config.tooltipMetadataDivider === "string" && config.tooltipMetadataDivider.length === 1 ? config.tooltipMetadataDivider : "-").repeat(maxLength)}\n\n`
+			: "";
 
 	const tooltip = `${tooltipMetadata}${previousLyrics}<span color="${
 		tooltipColor
