@@ -53,12 +53,12 @@ The avaible options are:
 - `iconPath` (String): File path the song's icon will be stored in (must be an absolute path).
 - `deleteIconWhenPaused` (Boolean): Whetever keep the song icon or not when the player is paused.
 - `defaultVolumeStep` (Number): The default step for volume increase/decrease.
-- `musixmatch` (Object): [^2]
-	- `usertoken` (String): Your Musixmatch usertoken. [^2]
-	- `cookies` (String): Your Musixmatch cookies. [^2]
-- `sourceOrder` (Array\<String>): The order in which the sources will be fetched.
+- `sourceOrder` (Array\<String>): The order in which the sources will be fetched (Removing a source from here means the lyrics will never be fetched from that source). [^2]
+- `tooltipIncludeSongMetadata` (Boolean): Whetever show the song name, album and artist in the lyrics tooltip.
+- `tooltipMetadataDivider` (String): The character to use as divider between the metadata and the lyrics when `tooltipIncludeSongMetadata` is set to `true` (max 1 character).
+- `tooltipSourceIncludeCachedNotice` (Boolean): Whetever include the ` - Cached` text in the source when the lyrics are cached.
 
-[^2]: See [Musixmatch Configuration](https://github.com/Stef-00012/SyncLyrics#musixmatch-configuration)
+[^2]: Current avaible sources are<br />- [lrclib.net](https://lrclib.net) (`lrclib`)<br />- [Musixmatch](https://musixmatch.com) (`musixmatch`).
 
 ### Example Config
 
@@ -69,7 +69,7 @@ The avaible options are:
     "artistUpdateInterval": 1000,
     "nameUpdateInterval": 1000,
     "lyricsUpdateInterval": 500,
-    "marqueeMinLength": 30,
+    "marqueeMinLength": 20,
     "tooltipCurrentLyricColor": "#cba6f7",
     "playerSourceColor": "#89b4fa",
     "ignoredPlayers": [
@@ -83,29 +83,27 @@ The avaible options are:
     ],
     "iconPath": null,
     "deleteIconWhenPaused": true,
-	"defaultVolumeStep": 5,
-    "musixmatch": {
-        "usertoken": null,
-        "cookies": null
-    },
+    "defaultVolumeStep": 5,
     "sourceOrder": [
-		"musixmatch",
-		"lrclib"
-	]
+        "musixmatch",
+        "lrclib"
+    ],
+    "tooltipIncludeSongMetadata": true,
+    "tooltipMetadataDivider": "-"
 }
 ```
 
 ## Waybar Example
 
-This example uses has the `media.js` file located in `~/.config/custom-commands/media.js`
+This example uses has the `media.js` file located in `~/.config/custom-commands/SyncLyrics/media.js`
 
 ```jsonc
 {
-    "image": {
+	"image": {
 		"interval": 1,
 		// "size": 26, // (change based on your liking)
-		"exec": "node ~/.config/custom-commands/media.js --cover",
-		"on-click": "node ~/.config/custom-commands/media.js --show-cover",
+		"exec": "node ~/.config/custom-commands/SyncLyrics/media.js --cover",
+		"on-click": "node ~/.config/custom-commands/SyncLyrics/media.js --show-cover",
 		"tooltip": false
 	},
 
@@ -113,17 +111,17 @@ This example uses has the `media.js` file located in `~/.config/custom-commands/
 		"tooltip": true,
 		"format": "{icon} {}",
 		"format-icons": {
-			"playing": "󰎇 ",
-			"none": "󰎊 "
+			"playing": "󰎇",
+			"none": "󰎊"
 		},
 		"return-type": "json",
-		"exec-if": "if [ -f ~/.config/custom-commands/media.js ]; then exit 0; else exit 1; fi",
+		"exec-if": "if [ -f ~/.config/custom-commands/SyncLyrics/media.js ]; then exit 0; else exit 1; fi",
 		"restart-interval": 5,
-		"exec": "node ~/.config/custom-commands/media.js --data",
-		"on-click": "node ~/.config/custom-commands/media.js --play-toggle",
+		"exec": "node ~/.config/custom-commands/SyncLyrics/media.js --data",
+		"on-click": "node ~/.config/custom-commands/SyncLyrics/media.js --play-toggle",
 		"on-click-middle": "pgrep -x 'spotify' > /dev/null && wmctrl -a 'Spotify' || spotify &",
-		"on-scroll-up": "node ~/.config/custom-commands/media.js --volume-up",
-		"on-scroll-down": "node ~/.config/custom-commands/media.js --volume-down",
+		"on-scroll-up": "node ~/.config/custom-commands/SyncLyrics/media.js --volume-up",
+		"on-scroll-down": "node ~/.config/custom-commands/SyncLyrics/media.js --volume-down",
 		"escape": true,
 		"exec-on-event": false
 	},
@@ -132,14 +130,14 @@ This example uses has the `media.js` file located in `~/.config/custom-commands/
 		"tooltip": true,
 		"format": "{icon} {}",
 		"format-icons": {
-			"lyrics": "󰲹 ",
-			"none": "󰐓 "
+			"lyrics": "󰲹",
+			"none": "󰐓"
 		},
 		"return-type": "json",
-		"exec-if": "if [ -f ~/.config/custom-commands/media.js ]; then exit 0; else exit 1; fi",
+		"exec-if": "if [ -f ~/.config/custom-commands/SyncLyrics/media.js ]; then exit 0; else exit 1; fi",
 		"restart-interval": 5,
-		"exec": "node ~/.config/custom-commands/media.js",
-		"on-click-middle": "node ~/.config/custom-commands/media.js --show-lyrics",
+		"exec": "node ~/.config/custom-commands/SyncLyrics/media.js",
+		"on-click-middle": "node ~/.config/custom-commands/SyncLyrics/media.js --show-lyrics",
 		"escape": true,
 		"hide-empty-text": true,
 		"exec-on-event": false
@@ -154,29 +152,6 @@ You can generate the CSS by running `node progress.js <module-name> <active-colo
 
 For example if you module is `custom/song`, you want as active color `#123456` and and background color `#abcdef`, the command will be `node progress.js song #123456 #abcdef`.<br />
 This script will create a `style.css` file with the generated CSS, just paste the generated CSS inside you waybar's CSS config.
-
-## Musixmatch Configuration
-
-To get your `usertoken`, follow [this guide by Spicetify developers](https://spicetify.app/docs/faq/#sometimes-popup-lyrics-andor-lyrics-plus-seem-to-not-work) (stop at step 5) or follow these steps:
-1. Download the Musixmatch desktop application.
-	- **Windows**:<br />
-		1​. Go to [store.rg-adguard.net](https://store.rg-adguard.net/).<br />
-		2​. Select "ProductID" on the left.<br />
-		3​. In the search box type `9wzdncrfj235` and click the done button
-	- **Linux**:<br />
-		1​. Find an archive with the Musixmatch desktop app.
-2. Download the `.appxbundle` file and run it **(Login is __not__ required)**.
-3. Open DevTools (`Ctrl + Shift + I`) and go to the "Network" tab.
-4. Refresh the page (`Ctrl + R`) and filter the Network tab results by searching `apic`.
-5. Click on any result and go to the "Headers" tab.
-6. Find the `usertoken` query string parameter.
-
-To get your `cookies`:
-1. visit `https://apic-desktop.musixmatch.com//ws/1.1/track.subtitle.get?commontrack_id=10074988&app_id=web-desktop-app-v1.0&usertoken=<USERTOKEN>` (Replace `<USERTOKEN>` with the `usertoken` you got earlier) **(If you are logged into `musixmatch.com`, use an incognito tab to avoid getting useless cookies, the only cookies required are `AWSELB` and `AWSELBCORS`)**.
-2. Open the DevTools (`Ctrl + Shift + I`) and go to the "Network" tab.
-3. Refresh the page (`Ctrl + R`).
-4. Click on the first result and go to the "Headers" tab.
-5. Find the `cookie` header.
 
 ## Local Lyrics
 
