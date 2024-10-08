@@ -26,7 +26,8 @@ module.exports = async (cookies) => {
 			}
 		} catch (e) {
 			errorLog(
-				"Something went wrong while reading the token file, deleting it...", e
+				"Something went wrong while reading the token file, deleting it...",
+				e,
 			);
 
 			try {

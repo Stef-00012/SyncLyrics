@@ -3,7 +3,7 @@ module.exports = async (metadata) => {
 
 	const tokenData = await getMusixmatchUsertoken();
 
-	debugLog("Musixmatch token data:", tokenData)
+	debugLog("Musixmatch token data:", tokenData);
 
 	if (!tokenData) return null;
 
@@ -38,9 +38,9 @@ module.exports = async (metadata) => {
 	let commonTrackId;
 
 	try {
-		const searchFetchUrl = `${searchUrl}&${searchSearchParams}`
+		const searchFetchUrl = `${searchUrl}&${searchSearchParams}`;
 
-		debugLog("Musixmatch search fetch URL:", searchFetchUrl)
+		debugLog("Musixmatch search fetch URL:", searchFetchUrl);
 
 		const res = await fetch(searchFetchUrl, {
 			headers: {
@@ -85,7 +85,7 @@ module.exports = async (metadata) => {
 			return null;
 		}
 
-		debugLog("Musixmatch search results:", data?.message?.body?.track_list)
+		debugLog("Musixmatch search results:", data?.message?.body?.track_list);
 
 		if (data?.message?.body?.track_list?.length <= 0) {
 			if (
@@ -101,11 +101,14 @@ module.exports = async (metadata) => {
 
 		const track = data?.message?.body?.track_list?.find(
 			(listItem) =>
-				listItem.track.track_name?.toLowerCase() === metadata.track?.toLowerCase() &&
-				listItem.track.artist_name?.toLowerCase().includes(metadata.artist?.toLowerCase()),
+				listItem.track.track_name?.toLowerCase() ===
+					metadata.track?.toLowerCase() &&
+				listItem.track.artist_name
+					?.toLowerCase()
+					.includes(metadata.artist?.toLowerCase()),
 		);
 
-		debugLog("Musixmatch search filtered track:", track)
+		debugLog("Musixmatch search filtered track:", track);
 
 		if (!track) {
 			if (
@@ -123,7 +126,7 @@ module.exports = async (metadata) => {
 
 		commonTrackId = track?.track?.commontrack_id;
 
-		debugLog("Musixmatch commontrack_id", commonTrackId)
+		debugLog("Musixmatch commontrack_id", commonTrackId);
 	} catch (e) {
 		if (
 			(!global.cachedLyrics || !global.cachedLyrics?.lyrics) &&
@@ -156,9 +159,9 @@ module.exports = async (metadata) => {
 	});
 
 	try {
-		const lyricsFetchUrl = `${lyricsUrl}&${lyricsSearchParams}`
+		const lyricsFetchUrl = `${lyricsUrl}&${lyricsSearchParams}`;
 
-		debugLog("Musixmatch lyrics fetch URL:", lyricsFetchUrl)
+		debugLog("Musixmatch lyrics fetch URL:", lyricsFetchUrl);
 
 		const res = await fetch(lyricsFetchUrl, {
 			headers: {
@@ -203,7 +206,7 @@ module.exports = async (metadata) => {
 			return null;
 		}
 
-		debugLog("Musixmatch track data:", data?.message?.body)
+		debugLog("Musixmatch track data:", data?.message?.body);
 
 		const lyrics = data?.message?.body?.subtitle?.subtitle_body;
 

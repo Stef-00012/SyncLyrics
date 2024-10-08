@@ -12,7 +12,8 @@ module.exports = (newConfig) => {
 			!Object.keys(logLevels).includes(newConfig.logLevel))
 	) {
 		warnLog(
-			"'config.logLevel' must be a string and must be one of", Object.keys(logLevels),
+			"'config.logLevel' must be a string and must be one of",
+			Object.keys(logLevels),
 		);
 
 		invalidConfig++;
@@ -179,7 +180,8 @@ module.exports = (newConfig) => {
 				});
 			} catch (e) {
 				errorLog(
-					"There was an error while creating the directory for the song icon", e
+					"There was an error while creating the directory for the song icon",
+					e,
 				);
 
 				invalidConfig++;

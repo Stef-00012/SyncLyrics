@@ -39,7 +39,8 @@ module.exports = (player, skipPaused = true, retry = true) => {
 			.split("||||");
 	} catch (e) {
 		errorLog(
-			`Something went wrong while getting data from playerctl (player = ${player})`, e,
+			`Something went wrong while getting data from playerctl (player = ${player})`,
+			e,
 		);
 
 		if (retry) {

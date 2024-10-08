@@ -47,7 +47,7 @@ global.config = {
 	logLevel: "none",
 
 	tooltipSourceIncludeCachedNotice: true,
-	tooltipMetadataDividerColor: '#ffffff',
+	tooltipMetadataDividerColor: "#ffffff",
 	tooltipMetadataArtistColor: "#ffffff",
 	tooltipMetadataTrackColor: "#ffffff",
 	tooltipMetadataAlbumColor: "#ffffff",

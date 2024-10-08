@@ -4,7 +4,7 @@ const fs = require("node:fs");
 module.exports = (metadata) => {
 	const url = metadata.iconUrl;
 
-	debugLog("Song icon URL:", url)
+	debugLog("Song icon URL:", url);
 
 	if (!url) {
 		deleteIcon();
