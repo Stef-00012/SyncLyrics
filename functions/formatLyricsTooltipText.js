@@ -1,5 +1,3 @@
-const centerText = require("./centerText");
-
 module.exports = (data, metadata = {}) => {
 	const tooltipColor = global.config.tooltipCurrentLyricColor || "#cba6f7";
 

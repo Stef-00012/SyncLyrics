@@ -1,6 +1,5 @@
 const fs = require("node:fs");
 const path = require("node:path");
-const debugLog = require("./debugLog");
 const sleep = require("node:util").promisify(setTimeout);
 
 module.exports = async (cookies) => {
