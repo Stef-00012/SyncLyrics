@@ -30,7 +30,7 @@ module.exports = async (metadata) => {
 		q_album: metadata.album,
 		page_size: 20,
 		page: 1,
-		f_has_subtitles: 1,
+		f_has_subtitle: 1,
 	});
 
 	let commonTrackId;
