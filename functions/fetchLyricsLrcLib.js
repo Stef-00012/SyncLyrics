@@ -40,9 +40,13 @@ module.exports = async (metadata) => {
 
 		const data = await res.json();
 
+		debugLog("lrclib.net results:", data)
+
 		const match = data.find(
-			(d) => d.artistName?.toLowerCase() === metadata.artist?.toLowerCase() && d.trackName?.toLowerCase() === metadata.track?.toLowerCase(),
+			(d) => d.artistName?.toLowerCase().includes(metadata.artist?.toLowerCase()) && d.trackName?.toLowerCase() === metadata.track?.toLowerCase(),
 		);
+
+		debugLog("lrclib filtered track:", match)
 
 		if (!match || !match.syncedLyrics || match.syncedLyrics?.length <= 0) {
 			infoLog("The fetched song does not have synced lyrics [LRCLIB]");

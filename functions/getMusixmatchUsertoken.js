@@ -54,7 +54,7 @@ module.exports = async (cookies) => {
 		});
 
 		if (res.status === 301) {
-			infoLog("Successfully received the 'set-cookie' redirect response");
+			debugLog("Successfully received the 'set-cookie' redirect response");
 
 			const setCookie = res.headers
 				.getSetCookie()
@@ -62,7 +62,7 @@ module.exports = async (cookies) => {
 				.filter((cookie) => cookie.split("=").pop() !== "unknown")
 				.join("; ");
 
-			infoLog("Re-fetching with the cookies...");
+			debugLog("Re-fetching with the cookies...");
 
 			return await getMusixmatchUsertoken(setCookie);
 		}
@@ -112,7 +112,7 @@ module.exports = async (cookies) => {
 
 		global.fetchingMxmToken = false;
 
-		infoLog("Successfully fetched the usertoken", json);
+		infoLog("Successfully fetched the usertoken");
 
 		return json;
 	} catch (e) {}

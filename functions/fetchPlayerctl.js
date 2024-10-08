@@ -97,7 +97,7 @@ module.exports = (player, skipPaused = true, retry = true) => {
 		(metadata.currentMs / metadata.lengthMs) * 100,
 	);
 
-	infoLog("Metadata:", metadata);
+	debugLog("Metadata:", metadata);
 
 	global.playerOffset = 0;
 

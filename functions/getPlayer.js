@@ -1,6 +1,8 @@
 const { execSync } = require("node:child_process");
 
 module.exports = (skipPaused = true, offset = 0) => {
+	debugLog(`getPlayer: skipPaused = ${skipPaused}, offset = ${offset}`)
+	
 	let players;
 
 	try {
@@ -34,7 +36,7 @@ module.exports = (skipPaused = true, offset = 0) => {
 			return 0;
 		});
 
-	infoLog("Avaible Players", playersList);
+	debugLog("Avaible Players", playersList);
 
 	if (playersList.length <= 0) return null;
 
