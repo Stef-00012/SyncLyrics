@@ -65,8 +65,10 @@ The avaible options are:
 - `dataUpdateInterval` (Number): How often update the output returned by the `--data` or `-d` parameter (in milliseconds).
 - `nameUpdateInterval` (Number): How often update the output returned by the `--name` or `-n` parameter (in milliseconds).
 
-- `defaultVolumeStep` (Number): The default step for volume increase/decrease.
 - `marqueeMinLength` (Number): Minimum length before the output of `--data`, `-d`, `--name`, `-n`, `--artist` and `-a` becomes a marquee (Scrolling text).
+- `marqueeDivider` (String): Text to use in the marquee to divide start of the text from the end.
+
+- `defaultVolumeStep` (Number): The default step for volume increase/decrease.
 
 [^2]: Avaible Levels: `none`, `info`, `warn`, `error`, `debug`.
 [^3]: Current avaible sources are<br />- [lrclib.net](https://lrclib.net) (`lrclib`)<br />- [Musixmatch](https://musixmatch.com) (`musixmatch`).
@@ -78,12 +80,13 @@ The avaible options are:
     "logLevel": "none",
     
     "tooltipSourceIncludeCachedNotice": true,
+    "tooltipMetadataDividerColor": "#ffffff",
     "tooltipMetadataArtistColor": "#ffffff",
     "tooltipMetadataTrackColor": "#ffffff",
     "tooltipMetadataAlbumColor": "#ffffff",
     "tooltipCurrentLyricColor": "#cba6f7",
+    "tooltipPlayerSourceColor": "#89b4fa",
     "tooltipIncludeSongMetadata": true,
-    "playerSourceColor": "#89b4fa",
     "tooltipMetadataDivider": "-",
 
     "deleteIconWhenPaused": true,
@@ -103,12 +106,14 @@ The avaible options are:
         "lrclib"
     ],
 
-    "dataUpdateInterval": 1000,
     "artistUpdateInterval": 1000,
-    "nameUpdateInterval": 1000,
     "lyricsUpdateInterval": 500,
+    "dataUpdateInterval": 1000,
+    "nameUpdateInterval": 1000,
 
     "marqueeMinLength": 20,
+    "marqueeDivider": "  ",
+
     "defaultVolumeStep": 5
 }
 ```

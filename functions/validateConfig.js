@@ -382,22 +382,6 @@ module.exports = (newConfig) => {
 	}
 
 	if (
-		newConfig.defaultVolumeStep !== undefined &&
-		newConfig.defaultVolumeStep !== null &&
-		(!Number.isInteger(newConfig.defaultVolumeStep) ||
-			newConfig.defaultVolumeStep <= 0 ||
-			newConfig.defaultVolumeStep > 100)
-	) {
-		warnLog(
-			"'config.defaultVolumeStep' must be a positive integer lesser than 100",
-		);
-
-		invalidConfig++;
-
-		newConfig.defaultVolumeStep = 5;
-	}
-
-	if (
 		newConfig.marqueeMinLength !== undefined &&
 		newConfig.marqueeMinLength !== null &&
 		(!Number.isInteger(newConfig.marqueeMinLength) ||
@@ -412,6 +396,34 @@ module.exports = (newConfig) => {
 
 	if (config.marqueeMinLength !== newConfig.marqueeMinLength) {
 		currentMarqueeIndex = 0;
+	}
+
+	if (
+		newConfig.marqueeDivider !== undefined &&
+		newConfig.marqueeDivider !== null &&
+		typeof newConfig.marqueeDivider !== "string"
+	) {
+		warnLog("'config.marqueeDivider' must be a string");
+
+		invalidConfig++;
+
+		newConfig.marqueeDivider = "  ";
+	}
+
+	if (
+		newConfig.defaultVolumeStep !== undefined &&
+		newConfig.defaultVolumeStep !== null &&
+		(!Number.isInteger(newConfig.defaultVolumeStep) ||
+			newConfig.defaultVolumeStep <= 0 ||
+			newConfig.defaultVolumeStep > 100)
+	) {
+		warnLog(
+			"'config.defaultVolumeStep' must be a positive integer lesser than 100",
+		);
+
+		invalidConfig++;
+
+		newConfig.defaultVolumeStep = 5;
 	}
 
 	if (invalidConfig > 0) {

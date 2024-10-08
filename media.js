@@ -70,6 +70,8 @@ global.config = {
 	lyricsUpdateInterval: 500,
 
 	marqueeMinLength: 20,
+	marqueeDivider: "  ",
+
 	defaultVolumeStep: 5,
 };
 

@@ -5,7 +5,7 @@ module.exports = (text) => {
 		currentMarqueeIndex = 0;
 	}
 
-	const dividedText = `${text}   `;
+	const dividedText = `${text}${config.marqueeDivider || "  "}`;
 	const marqueeText =
 		dividedText.slice(currentMarqueeIndex) +
 		dividedText.slice(0, currentMarqueeIndex);
