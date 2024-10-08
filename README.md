@@ -64,8 +64,8 @@ The avaible options are:
 - `marqueeDivider` (String): Text to use in the marquee to divide start of the text from the end.
 - `defaultVolumeStep` (Number): The default step for volume increase/decrease.
 
-[^2]: Avaible Levels: `none`, `info`, `warn`, `error`, `debug`.
-[^3]: Current avaible sources are<br />- [lrclib.net](https://lrclib.net) (`lrclib`)<br />- [Musixmatch](https://musixmatch.com) (`musixmatch`).
+[^2]: Avaible Log Levels: `none`, `info`, `warn`, `error`, `debug`.
+[^3]: Current Avaible Sources are<br />- [lrclib.net](https://lrclib.net) (`lrclib`)<br />- [Musixmatch](https://musixmatch.com) (`musixmatch`).
 
 ### Example Config
 
