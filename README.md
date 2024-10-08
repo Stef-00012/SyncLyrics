@@ -41,7 +41,6 @@ The config are read from a file `config.json` inside the config folder (create i
 
 The avaible options are:
 - `logLevel` (Sring): Log level, it might break waybar's output. [^2]
-
 - `tooltipSourceIncludeCachedNotice` (Boolean): Whetever include the ` - Cached` text in the source when the lyrics are cached.
 - `tooltipMetadataDividerColor` (String): The color to use for the metadata divider in the lyrics waybar tooltip.
 - `tooltipMetadataArtistColor` (String): The color to use for the current artist name in the lyrics waybar tooltip.
@@ -51,23 +50,18 @@ The avaible options are:
 - `tooltipPlayerSourceColor` (String): The color to use for the lyrics source in the lyrics waybar tooltip.
 - `tooltipIncludeSongMetadata` (Boolean): Whetever show the song name, album and artist in the lyrics waybar tooltip.
 - `tooltipMetadataDivider` (String): The character to use as divider between the metadata and the lyrics when `tooltipIncludeSongMetadata` is set to `true` (max 1 character).
-
 - `deleteIconWhenPaused` (Boolean): Whetever keep the song icon or not when the player is paused.
 - `iconPath` (String): File path the song's icon will be stored in (must be an absolute path).
-
 - `ignoredPlayers` (Array\<String>): List of players that will never be used by the script.
 - `favoritePlayers` (Array\<String>): List of players that will be prioritized over others.
 - `hatedPlayers` (Array\<String>): Opposite of `favoritePlayers`.
 - `sourceOrder` (Array\<String>): The order in which the sources will be fetched (Removing a source from here means the lyrics will never be fetched from that source). [^3]
-
 - `artistUpdateInterval` (Number): How often update the output returned by the `--artist` or `-artist` parameter (in milliseconds).
 - `lyricsUpdateInterval` (Number): How often update the output returned by default (in milliseconds).
 - `dataUpdateInterval` (Number): How often update the output returned by the `--data` or `-d` parameter (in milliseconds).
 - `nameUpdateInterval` (Number): How often update the output returned by the `--name` or `-n` parameter (in milliseconds).
-
 - `marqueeMinLength` (Number): Minimum length before the output of `--data`, `-d`, `--name`, `-n`, `--artist` and `-a` becomes a marquee (Scrolling text).
 - `marqueeDivider` (String): Text to use in the marquee to divide start of the text from the end.
-
 - `defaultVolumeStep` (Number): The default step for volume increase/decrease.
 
 [^2]: Avaible Levels: `none`, `info`, `warn`, `error`, `debug`.
@@ -78,20 +72,17 @@ The avaible options are:
 ```json
 {
     "logLevel": "none",
-    
     "tooltipSourceIncludeCachedNotice": true,
     "tooltipMetadataDividerColor": "#ffffff",
-    "tooltipMetadataArtistColor": "#ffffff",
-    "tooltipMetadataTrackColor": "#ffffff",
-    "tooltipMetadataAlbumColor": "#ffffff",
+    "tooltipMetadataArtistColor": "#a6e3a1",
+    "tooltipMetadataTrackColor": "#74c7ec",
+    "tooltipMetadataAlbumColor": "#fab387",
     "tooltipCurrentLyricColor": "#cba6f7",
     "tooltipPlayerSourceColor": "#89b4fa",
     "tooltipIncludeSongMetadata": true,
     "tooltipMetadataDivider": "-",
-
     "deleteIconWhenPaused": true,
     "iconPath": null,
-
     "ignoredPlayers": [
         "plasma-browser-integration"
     ],
@@ -105,15 +96,12 @@ The avaible options are:
         "musixmatch",
         "lrclib"
     ],
-
     "artistUpdateInterval": 1000,
     "lyricsUpdateInterval": 500,
     "dataUpdateInterval": 1000,
     "nameUpdateInterval": 1000,
-
     "marqueeMinLength": 20,
     "marqueeDivider": "  ",
-
     "defaultVolumeStep": 5
 }
 ```
