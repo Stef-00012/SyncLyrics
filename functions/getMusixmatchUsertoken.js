@@ -4,43 +4,43 @@ const debugLog = require("./debugLog");
 const sleep = require("node:util").promisify(setTimeout);
 
 module.exports = async (cookies) => {
-	debugLog("Getting Musixmatch token...");
+	infoLog("Getting Musixmatch token...");
 
 	const tokenFile = path.join(global.configFolder, "musixmatchToken.json");
 
 	if (fs.existsSync(tokenFile)) {
-		debugLog("Token file found, checking if it is valid...");
+		infoLog("Token file found, checking if it is valid...");
 
 		const fileContent = fs.readFileSync(tokenFile);
 
 		try {
 			const data = JSON.parse(fileContent);
 
-			debugLog(
+			infoLog(
 				"Token file is valid, checking if the token is not expired and has all the required fields...",
 			);
 
 			if (data.usertoken && data.cookies && data.expiresAt > Date.now()) {
-				debugLog("Got token from the token file");
+				infoLog("Got token from the token file");
 
 				return data;
 			}
 		} catch (e) {
-			debugLog(
-				"Something went wrong while reading the token file, deleting it...",
+			errorLog(
+				"Something went wrong while reading the token file, deleting it...", e
 			);
 
 			try {
 				fs.unlinkSync(tokenFile);
 			} catch (e) {
-				debugLog("Something went wrong while deleting the token file...");
+				errorLog("Something went wrong while deleting the token file...", e);
 			}
 		}
 	}
 
 	if (global.fetchingMxmToken) return null;
 
-	debugLog("Fetching the token from the API...");
+	infoLog("Fetching the token from the API...");
 
 	const url =
 		"https://apic-desktop.musixmatch.com/ws/1.1/token.get?user_language=en&app_id=web-desktop-app-v1.0";
@@ -54,7 +54,7 @@ module.exports = async (cookies) => {
 		});
 
 		if (res.status === 301) {
-			debugLog("Successfully received the 'set-cookie' redirect response");
+			infoLog("Successfully received the 'set-cookie' redirect response");
 
 			const setCookie = res.headers
 				.getSetCookie()
@@ -62,13 +62,13 @@ module.exports = async (cookies) => {
 				.filter((cookie) => cookie.split("=").pop() !== "unknown")
 				.join("; ");
 
-			debugLog("Re-fetching with the cookies...");
+			infoLog("Re-fetching with the cookies...");
 
 			return await getMusixmatchUsertoken(setCookie);
 		}
 
 		if (!res.ok) {
-			debugLog(
+			warnLog(
 				`The usertoken API request failed with the status ${res.status} (${res.statusText})`,
 			);
 
@@ -81,13 +81,13 @@ module.exports = async (cookies) => {
 			data?.message?.header?.status_code === 401 &&
 			data?.message?.header?.hint === "captcha"
 		) {
-			debugLog(
+			warnLog(
 				"Musixmatch usertoken endpoint is being ratelimited, retrying in 10 seconds...",
 			);
 
 			await sleep(10000); // wait 10 seconds
 
-			debugLog("Retrying to fetch the Musixmatch usertken...");
+			infoLog("Retrying to fetch the Musixmatch usertken...");
 
 			global.fetchingMxmToken = false;
 
@@ -97,7 +97,7 @@ module.exports = async (cookies) => {
 		const usertoken = data?.message?.body?.user_token;
 
 		if (!usertoken) {
-			debugLog("The API response did not include the usertoken");
+			infoLog("The API response did not include the usertoken");
 
 			return;
 		}
@@ -112,7 +112,7 @@ module.exports = async (cookies) => {
 
 		global.fetchingMxmToken = false;
 
-		debugLog("Successfully fetched the usertoken", json);
+		infoLog("Successfully fetched the usertoken", json);
 
 		return json;
 	} catch (e) {}

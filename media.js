@@ -23,6 +23,14 @@ global.noMedia = JSON.stringify({
 	tooltip: "none",
 });
 
+global.logLevels = {
+	debug: 4,
+	error: 3,
+	warn: 2,
+	info: 1,
+	none: 0,
+};
+
 global.configFolder =
 	process.env.CONFIG_FOLDER ||
 	path.join(process.env.HOME, ".config", "syncLyrics");
@@ -36,28 +44,33 @@ if (configFolder.startsWith("./")) {
 global.configFile = path.join(configFolder, "config.json");
 
 global.config = {
-	debug: false,
+	logLevel: "none",
+
+	tooltipSourceIncludeCachedNotice: true,
+	tooltipMetadataDividerColor: '#ffffff',
+	tooltipMetadataArtistColor: "#ffffff",
+	tooltipMetadataTrackColor: "#ffffff",
+	tooltipMetadataAlbumColor: "#ffffff",
+	tooltipCurrentLyricColor: "#cba6f7",
+	tooltipPlayerSourceColor: "#89b4fa",
+	tooltipIncludeSongMetadata: true,
+	tooltipMetadataDivider: "-",
+
+	deleteIconWhenPaused: true,
+	iconPath: null,
+
+	ignoredPlayers: ["plasma-browser-integration"],
+	favoritePlayers: ["spotify"],
+	hatedPlayers: ["chromium"],
+	sourceOrder: ["musixmatch", "lrclib"],
+
 	dataUpdateInterval: 1000,
 	artistUpdateInterval: 1000,
 	nameUpdateInterval: 1000,
 	lyricsUpdateInterval: 500,
-	marqueeMinLength: 30,
-	tooltipCurrentLyricColor: "#cba6f7",
-	playerSourceColor: "#89b4fa",
-	ignoredPlayers: [],
-	favoritePlayers: [],
-	hatedPlayers: [],
-	iconPath: null,
-	deleteIconWhenPaused: false,
+
+	marqueeMinLength: 20,
 	defaultVolumeStep: 5,
-	musixmatch: {
-		usertoken: null,
-		cookies: null,
-	},
-	sourceOrder: ["musixmatch", "lrclib"],
-    tooltipIncludeSongMetadata: true,
-    tooltipMetadataDivider: "-",
-	tooltipSourceIncludeCachedNotice: true
 };
 
 const functionsDir = path.join(__dirname, "functions");
@@ -96,19 +109,19 @@ if (!fs.existsSync(configFolder))
 
 updateConfig();
 
-debugLog("Using config:", config);
+infoLog("Using config:", config);
 
-debugLog(`Loaded config from the file ${configFile}`);
+infoLog(`Loaded config from the file ${configFile}`);
 
 fs.watchFile(configFile, () => {
-	debugLog("Config file has been updated. Updating config...");
+	infoLog("Config file has been updated. Updating config...");
 
 	updateConfig();
 
-	debugLog("Using config:", config);
+	infoLog("Using config:", config);
 });
 
-debugLog(`Using config folder: ${configFolder}`);
+infoLog(`Using config folder: ${configFolder}`);
 
 if (["--show-lyrics", "-sl"].some((arg) => process.argv.includes(arg))) {
 	(async () => {
@@ -119,7 +132,7 @@ if (["--show-lyrics", "-sl"].some((arg) => process.argv.includes(arg))) {
 		const lyrics = await getLyrics(metadata);
 
 		if (!lyrics) {
-			debugLog("This song has no lyrics");
+			infoLog("This song has no lyrics");
 
 			process.exit(0);
 		}
@@ -213,7 +226,7 @@ if (["--trackid", "-tid"].some((arg) => process.argv.includes(arg))) {
 
 	const trackId = metadata.trackId.split("/").pop();
 
-	outputLog(`Current track ID is: ${trackId}`);
+	infoLog(`Current track ID is: ${trackId}`);
 
 	process.exit(0);
 }

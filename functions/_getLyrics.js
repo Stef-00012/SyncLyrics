@@ -1,6 +1,6 @@
 module.exports = async (metadata) => {
 	if (global.fetching && global.fetchingTrackId === metadata.trackId) {
-		debugLog(
+		warnLog(
 			`Already fetching from the source "${global.fetchingSource}" (Track ID: "${global.fetchingTrackId}")`,
 		);
 
@@ -18,10 +18,10 @@ module.exports = async (metadata) => {
 		sources = ["musixmatch", "lrclib"];
 
 	for (const source of sources) {
-		debugLog(`Trying to fetch the lyrics from the source "${source}"`);
+		infoLog(`Trying to fetch the lyrics from the source "${source}"`);
 
 		if (!Object.keys(avaibleSources).includes(source)) {
-			debugLog(`The source "${source}" doesn't exist, skipping...`);
+			infoLog(`The source "${source}" doesn't exist, skipping...`);
 
 			continue;
 		}
@@ -33,7 +33,7 @@ module.exports = async (metadata) => {
 		const lyrics = await avaibleSources[source](metadata);
 
 		if (lyrics) {
-			debugLog(`Got lyrics from the source "${source}"`);
+			infoLog(`Got lyrics from the source "${source}"`);
 
 			global.fetching = false;
 			global.fetchingSource = null;
@@ -42,10 +42,10 @@ module.exports = async (metadata) => {
 			return lyrics;
 		}
 
-		debugLog(`The source "${source}" doesn't have the lyrics`);
+		infoLog(`The source "${source}" doesn't have the lyrics, skipping...`);
 	}
 
-	debugLog("None of the sources have the lyrics");
+	infoLog("None of the sources have the lyrics");
 
 	return null;
 };

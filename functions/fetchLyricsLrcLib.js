@@ -1,7 +1,7 @@
 module.exports = async (metadata) => {
 	if (!metadata) return;
 
-	debugLog(
+	infoLog(
 		`Fetching the lyrics for "${metadata.track}" from "${metadata.album}" from "${metadata.artist}" (${metadata.trackId}) [LRCLIB]`,
 	);
 
@@ -29,7 +29,7 @@ module.exports = async (metadata) => {
 		});
 
 		if (!res.ok) {
-			debugLog(
+			warnLog(
 				`Lyrics fetch request failed with status ${res.status} (${res.statusText}) [LRCLIB]`,
 			);
 
@@ -41,18 +41,18 @@ module.exports = async (metadata) => {
 		const data = await res.json();
 
 		const match = data.find(
-			(d) => d.artistName === metadata.artist && d.trackName === metadata.track,
+			(d) => d.artistName?.toLowerCase() === metadata.artist?.toLowerCase() && d.trackName?.toLowerCase() === metadata.track?.toLowerCase(),
 		);
 
 		if (!match || !match.syncedLyrics || match.syncedLyrics?.length <= 0) {
-			debugLog("The fetched song does not have synced lyrics [LRCLIB]");
+			infoLog("The fetched song does not have synced lyrics [LRCLIB]");
 
 			global.cachedLyrics = cacheData;
 
 			return null;
 		}
 
-		debugLog("Successfully fetched and cached the synced lyrics [LRCLIB]");
+		infoLog("Successfully fetched and cached the synced lyrics [LRCLIB]");
 
 		cacheData.lyrics = match.syncedLyrics;
 
@@ -64,7 +64,7 @@ module.exports = async (metadata) => {
 	} catch (e) {
 		global.cachedLyrics = cacheData;
 
-		debugLog("Something went wrong while fetching the lyrics [LRCLIB]");
+		errorLog("Something went wrong while fetching the lyrics [LRCLIB]", e);
 
 		return null;
 	}

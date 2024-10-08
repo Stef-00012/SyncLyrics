@@ -5,7 +5,7 @@ module.exports = async (metadata) => {
 
 	if (!tokenData) return null;
 
-	debugLog(
+	infoLog(
 		`Fetching the lyrics for "${metadata.track}" from "${metadata.album}" from "${metadata.artist}" (${metadata.trackId}) [Musixmatch]`,
 	);
 
@@ -43,7 +43,7 @@ module.exports = async (metadata) => {
 		});
 
 		if (!res.ok) {
-			debugLog(
+			warnLog(
 				`Lyrics fetch request failed with status ${res.status} (${res.statusText}) [Musixmatch - Search]`,
 			);
 
@@ -62,7 +62,7 @@ module.exports = async (metadata) => {
 			data?.message?.header?.status_code === 401 &&
 			data?.message?.header?.hint === "captcha"
 		) {
-			debugLog(
+			warnLog(
 				"The usertoken has been temporary blocked for too many requests (captcha) [Musixmatch - Search]",
 			);
 
@@ -86,15 +86,15 @@ module.exports = async (metadata) => {
 			)
 				global.cachedLyrics = cacheData;
 
-			debugLog("No songs were found [Musixmatch - Search]");
+			infoLog("No songs were found [Musixmatch - Search]");
 
 			return null;
 		}
 
 		const track = data?.message?.body?.track_list?.find(
 			(listItem) =>
-				listItem.track.track_name === metadata.track &&
-				listItem.track.artist_name === metadata.artist,
+				listItem.track.track_name?.toLowerCase() === metadata.track?.toLowerCase() &&
+				listItem.track.artist_name?.toLowerCase() === metadata.artist?.toLowerCase(),
 		);
 
 		if (!track) {
@@ -104,7 +104,7 @@ module.exports = async (metadata) => {
 			)
 				global.cachedLyrics = cacheData;
 
-			debugLog(
+			infoLog(
 				"No songs were found with the current name and artist [Musixmatch - Search]",
 			);
 
@@ -119,7 +119,7 @@ module.exports = async (metadata) => {
 		)
 			global.cachedLyrics = cacheData;
 
-		debugLog(
+		errorLog(
 			"Something went wrong while fetching the lyrics [Musixmatch - Search]",
 			e,
 		);
@@ -128,7 +128,7 @@ module.exports = async (metadata) => {
 	}
 
 	if (!commonTrackId) {
-		debugLog("Missing commontrack_id [Musixmatch - Search]");
+		infoLog("Missing commontrack_id [Musixmatch - Search]");
 
 		if (
 			(!global.cachedLyrics || !global.cachedLyrics?.lyrics) &&
@@ -151,7 +151,7 @@ module.exports = async (metadata) => {
 		});
 
 		if (!res.ok) {
-			debugLog(
+			warnLog(
 				`Lyrics fetch request failed with status ${res.status} (${res.statusText}) [Musixmatch - Lyrics]`,
 			);
 
@@ -170,8 +170,8 @@ module.exports = async (metadata) => {
 			data?.message?.header?.status_code === 401 &&
 			data?.message?.header?.hint === "captcha"
 		) {
-			debugLog(
-				"The usertoken has been temporary blocked for too many requests (captcha) [Musixmatch - Search]",
+			warnLog(
+				"The usertoken has been temporary blocked for too many requests (captcha), retrying in 10 seconds... [Musixmatch - Lyrics]",
 			);
 
 			setTimeout(async () => {
@@ -190,7 +190,7 @@ module.exports = async (metadata) => {
 		const lyrics = data?.message?.body?.subtitle?.subtitle_body;
 
 		if (!lyrics) {
-			debugLog("Missing Lyrics [Musixmatch - Lyrics]");
+			infoLog("Missing Lyrics [Musixmatch - Lyrics]");
 
 			if (
 				(!global.cachedLyrics || !global.cachedLyrics?.lyrics) &&
@@ -201,7 +201,7 @@ module.exports = async (metadata) => {
 			return null;
 		}
 
-		debugLog("Successfully fetched and cached the synced lyrics [LRCLIB]");
+		infoLog("Successfully fetched and cached the synced lyrics [LRCLIB]");
 
 		cacheData.lyrics = lyrics;
 
@@ -217,7 +217,7 @@ module.exports = async (metadata) => {
 		)
 			global.cachedLyrics = cacheData;
 
-		debugLog(
+		errorLog(
 			"Something went wrong while fetching the lyrics [Musixmatch - Lyrics]",
 			e,
 		);

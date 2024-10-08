@@ -6,7 +6,7 @@ module.exports = (skipPaused = true, offset = 0) => {
 	try {
 		players = execSync("playerctl --list-all").toString().trim();
 	} catch (e) {
-		debugLog("Something went wrong while getting the list of players");
+		errorLog("Something went wrong while getting the list of players", e);
 
 		return null;
 	}
@@ -34,7 +34,7 @@ module.exports = (skipPaused = true, offset = 0) => {
 			return 0;
 		});
 
-	debugLog("Avaible Players", playersList);
+	infoLog("Avaible Players", playersList);
 
 	if (playersList.length <= 0) return null;
 

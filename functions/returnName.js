@@ -2,13 +2,13 @@ module.exports = async () => {
 	const metadata = fetchPlayerctl();
 
 	if (!metadata) {
-		debugLog("no media");
+		infoLog("no media");
 
 		return outputLog(noMedia);
 	}
 
 	if (!metadata.track) {
-		debugLog("Metadata doesn't include the song name");
+		infoLog("Metadata doesn't include the song name");
 
 		return outputLog(noSong);
 	}

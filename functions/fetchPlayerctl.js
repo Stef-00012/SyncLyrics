@@ -38,8 +38,8 @@ module.exports = (player, skipPaused = true, retry = true) => {
 			.trim()
 			.split("||||");
 	} catch (e) {
-		debugLog(
-			`Something went wrong while getting data from playerctl (player = ${player})`,
+		errorLog(
+			`Something went wrong while getting data from playerctl (player = ${player})`, e,
 		);
 
 		if (retry) {
@@ -48,7 +48,7 @@ module.exports = (player, skipPaused = true, retry = true) => {
 			const newPlayer = getPlayer(skipPaused, global.playerOffset);
 
 			if (newPlayer) {
-				debugLog(`Trying to use another player (${newPlayer})`);
+				infoLog(`Trying to use another player (${newPlayer})`);
 
 				return fetchPlayerctl(newPlayer, skipPaused);
 			}
@@ -97,7 +97,7 @@ module.exports = (player, skipPaused = true, retry = true) => {
 		(metadata.currentMs / metadata.lengthMs) * 100,
 	);
 
-	debugLog("Metadata:", metadata);
+	infoLog("Metadata:", metadata);
 
 	global.playerOffset = 0;
 

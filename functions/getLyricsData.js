@@ -41,7 +41,7 @@ module.exports = (metadata, lyrics) => {
 	const searchTimestamp = lastTimestamp || firstTimestamp;
 
 	if (!searchLyric) {
-		debugLog("No lastLyric and firstLyric avaible");
+		infoLog("No lastLyric and firstLyric avaible");
 
 		return null;
 	}

@@ -1,3 +1,3 @@
 module.exports = (...args) => {
-	console.info(...args);
+	console.log(...args);
 };

@@ -5,140 +5,90 @@ module.exports = (newConfig) => {
 
 	let invalidConfig = 0;
 
-	if (typeof newConfig.debug !== "boolean") {
-		debugLog("'config.debug' must be a boolean");
-
-		invalidConfig++;
-
-		newConfig.debug = false;
-	}
-
 	if (
-		newConfig.dataUpdateInterval !== undefined &&
-		newConfig.dataUpdateInterval !== null &&
-		(!Number.isInteger(newConfig.dataUpdateInterval) ||
-			newConfig.dataUpdateInterval <= 0)
+		newConfig.logLevel !== undefined &&
+		newConfig.logLevel !== null &&
+		(typeof newConfig.logLevel !== "string" ||
+			!Object.keys(logLevels).includes(newConfig.logLevel))
 	) {
-		debugLog("'config.dataUpdateInterval' must be a positive integer");
-
-		invalidConfig++;
-
-		newConfig.dataUpdateInterval = 1000;
-	}
-
-	if (
-		newConfig.dataUpdateInterval !== global.config.dataUpdateInterval &&
-		global.global.currentIntervalType === "data"
-	) {
-		debugLog("Restarting the data interval");
-
-		clearInterval(global.currentInterval);
-
-		global.currentInterval = setInterval(
-			returnData,
-			newConfig.dataUpdateInterval || 1000,
+		warnLog(
+			"'config.logLevel' must be a string and must be one of", Object.keys(logLevels),
 		);
-	}
-
-	if (
-		newConfig.artistUpdateInterval !== undefined &&
-		newConfig.artistUpdateInterval !== null &&
-		(!Number.isInteger(newConfig.artistUpdateInterval) ||
-			newConfig.artistUpdateInterval <= 0)
-	) {
-		debugLog("'config.artistUpdateInterval' must be a positive integer");
 
 		invalidConfig++;
 
-		newConfig.artistUpdateInterval = 1000;
+		newConfig.logLevel = "none";
 	}
 
-	if (
-		newConfig.artistUpdateInterval !== global.config.artistUpdateInterval &&
-		global.global.currentIntervalType === "artist"
-	) {
-		debugLog("Restarting the artist interval");
-
-		clearInterval(global.currentInterval);
-
-		global.currentInterval = setInterval(
-			returnArtist,
-			newConfig.artistUpdateInterval || 1000,
-		);
-	}
-
-	if (
-		newConfig.nameUpdateInterval !== undefined &&
-		newConfig.nameUpdateInterval !== null &&
-		(!Number.isInteger(newConfig.nameUpdateInterval) ||
-			newConfig.nameUpdateInterval <= 0)
-	) {
-		debugLog("'config.nameUpdateInterval' must be a positive integer");
+	if (typeof newConfig.tooltipSourceIncludeCachedNotice !== "boolean") {
+		warnLog("'config.tooltipSourceIncludeCachedNotice' must be a boolean");
 
 		invalidConfig++;
 
-		newConfig.nameUpdateInterval = 1000;
-	}
-
-	if (
-		newConfig.nameUpdateInterval !== global.config.nameUpdateInterval &&
-		global.global.currentIntervalType === "name"
-	) {
-		debugLog("Restarting the name interval");
-
-		clearInterval(global.currentInterval);
-
-		global.currentInterval = setInterval(
-			returnName,
-			newConfig.nameUpdateInterval || 1000,
-		);
-	}
-
-	if (
-		newConfig.lyricsUpdateInterval !== undefined &&
-		newConfig.lyricsUpdateInterval !== null &&
-		(!Number.isInteger(newConfig.lyricsUpdateInterval) ||
-			newConfig.lyricsUpdateInterval <= 0)
-	) {
-		debugLog("'config.lyricsUpdateInterval' must be a positive integer");
-
-		invalidConfig++;
-
-		newConfig.lyricsUpdateInterval = 500;
-	}
-
-	if (
-		newConfig.lyricsUpdateInterval !== global.config.lyricsUpdateInterval &&
-		global.global.currentIntervalType === "lyrics"
-	) {
-		debugLog("Restarting the lyrics interval");
-
-		clearInterval(global.currentInterval);
-
-		global.currentInterval = setInterval(
-			returnLyrics,
-			newConfig.lyricsUpdateInterval || 1000,
-		);
-	}
-
-	if (
-		newConfig.marqueeMinLength !== undefined &&
-		newConfig.marqueeMinLength !== null &&
-		(!Number.isInteger(newConfig.marqueeMinLength) ||
-			newConfig.marqueeMinLength <= 0)
-	) {
-		debugLog("'config.marqueeMinLength' must be a positive integer");
-
-		invalidConfig++;
-
-		newConfig.marqueeMinLength = 30;
-	}
-
-	if (config.marqueeMinLength !== newConfig.marqueeMinLength) {
-		currentMarqueeIndex = 0;
+		newConfig.tooltipSourceIncludeCachedNotice = true;
 	}
 
 	const hexColorRegex = /^#(?:[0-9A-F]{3}){1,2}$/i;
+
+	if (
+		newConfig.tooltipMetadataDividerColor !== undefined &&
+		newConfig.tooltipMetadataDividerColor !== null &&
+		(typeof newConfig.tooltipMetadataDividerColor !== "string" ||
+			!hexColorRegex.test(newConfig.tooltipMetadataDividerColor))
+	) {
+		warnLog(
+			"'config.tooltipMetadataDividerColor' must be a string and must be a valid HEX color",
+		);
+
+		invalidConfig++;
+
+		newConfig.tooltipMetadataDividerColor = "#89b4fa";
+	}
+
+	if (
+		newConfig.tooltipMetadataArtistColor !== undefined &&
+		newConfig.tooltipMetadataArtistColor !== null &&
+		(typeof newConfig.tooltipMetadataArtistColor !== "string" ||
+			!hexColorRegex.test(newConfig.tooltipMetadataArtistColor))
+	) {
+		warnLog(
+			"'config.tooltipMetadataArtistColor' must be a string and must be a valid HEX color",
+		);
+
+		invalidConfig++;
+
+		newConfig.tooltipMetadataArtistColor = "#ffffff";
+	}
+
+	if (
+		newConfig.tooltipMetadataTrackColor !== undefined &&
+		newConfig.tooltipMetadataTrackColor !== null &&
+		(typeof newConfig.tooltipMetadataTrackColor !== "string" ||
+			!hexColorRegex.test(newConfig.tooltipMetadataTrackColor))
+	) {
+		warnLog(
+			"'config.tooltipMetadataTrackColor' must be a string and must be a valid HEX color",
+		);
+
+		invalidConfig++;
+
+		newConfig.tooltipMetadataTrackColor = "#ffffff";
+	}
+
+	if (
+		newConfig.tooltipMetadataAlbumColor !== undefined &&
+		newConfig.tooltipMetadataAlbumColor !== null &&
+		(typeof newConfig.tooltipMetadataAlbumColor !== "string" ||
+			!hexColorRegex.test(newConfig.tooltipMetadataAlbumColor))
+	) {
+		warnLog(
+			"'config.tooltipMetadataAlbumColor' must be a string and must be a valid HEX color",
+		);
+
+		invalidConfig++;
+
+		newConfig.tooltipMetadataAlbumColor = "#ffffff";
+	}
 
 	if (
 		newConfig.tooltipCurrentLyricColor !== undefined &&
@@ -146,7 +96,7 @@ module.exports = (newConfig) => {
 		(typeof newConfig.tooltipCurrentLyricColor !== "string" ||
 			!hexColorRegex.test(newConfig.tooltipCurrentLyricColor))
 	) {
-		debugLog(
+		warnLog(
 			"'config.tooltipCurrentLyricColor' must be a string and must be a valid HEX color",
 		);
 
@@ -156,84 +106,49 @@ module.exports = (newConfig) => {
 	}
 
 	if (
-		newConfig.playerSourceColor !== undefined &&
-		newConfig.playerSourceColor !== null &&
-		(typeof newConfig.playerSourceColor !== "string" ||
-			!hexColorRegex.test(newConfig.playerSourceColor))
+		newConfig.tooltipPlayerSourceColor !== undefined &&
+		newConfig.tooltipPlayerSourceColor !== null &&
+		(typeof newConfig.tooltipPlayerSourceColor !== "string" ||
+			!hexColorRegex.test(newConfig.tooltipPlayerSourceColor))
 	) {
-		debugLog(
-			"'config.playerSourceColor' must be a string and must be a valid HEX color",
+		warnLog(
+			"'config.tooltipPlayerSourceColor' must be a string and must be a valid HEX color",
 		);
 
 		invalidConfig++;
 
-		newConfig.playerSourceColor = "#89b4fa";
+		newConfig.tooltipPlayerSourceColor = "#89b4fa";
+	}
+
+	if (typeof newConfig.tooltipIncludeSongMetadata !== "boolean") {
+		warnLog("'config.tooltipIncludeSongMetadata' must be a boolean");
+
+		invalidConfig++;
+
+		newConfig.tooltipIncludeSongMetadata = false;
 	}
 
 	if (
-		newConfig.ignoredPlayers !== undefined &&
-		newConfig.ignoredPlayers !== null &&
-		!Array.isArray(newConfig.ignoredPlayers)
+		newConfig.tooltipMetadataDivider !== undefined &&
+		newConfig.tooltipMetadataDivider !== null &&
+		(typeof newConfig.tooltipMetadataDivider !== "string" ||
+			newConfig.tooltipMetadataDivider.length !== 1)
 	) {
-		debugLog("'config.ignoredPlayers' must be an array");
-
-		invalidConfig++;
-
-		newConfig.ignoredPlayers = [];
-	}
-
-	if (!newConfig.ignoredPlayers.every((cfg) => typeof cfg === "string")) {
-		debugLog("'config.ignoredPlayers' items must all be strings");
-
-		invalidConfig++;
-
-		newConfig.ignoredPlayers = newConfig.ignoredPlayers.filter(
-			(cfg) => typeof cfg === "string",
+		warnLog(
+			"'config.tooltipMetadataDivider' must be a string and must be 1 character long",
 		);
-	}
-
-	if (
-		newConfig.favoritePlayers !== undefined &&
-		newConfig.favoritePlayers !== null &&
-		!Array.isArray(newConfig.favoritePlayers)
-	) {
-		debugLog("'config.favoritePlayers' must be an array");
 
 		invalidConfig++;
 
-		newConfig.favoritePlayers = [];
+		newConfig.tooltipMetadataDivider = "-";
 	}
 
-	if (!newConfig.favoritePlayers.every((cfg) => typeof cfg === "string")) {
-		debugLog("'config.favoritePlayers' items must all be strings");
+	if (typeof newConfig.deleteIconWhenPaused !== "boolean") {
+		warnLog("'config.deleteIconWhenPaused' must be a boolean");
 
 		invalidConfig++;
 
-		newConfig.favoritePlayers = newConfig.favoritePlayers.filter(
-			(cfg) => typeof cfg === "string",
-		);
-	}
-
-	if (
-		newConfig.hatedPlayers !== undefined &&
-		newConfig.hatedPlayers !== null &&
-		!Array.isArray(newConfig.hatedPlayers)
-	) {
-		debugLog("'config.hatedPlayers' must be an array");
-
-		invalidConfig++;
-
-		newConfig.hatedPlayers = [];
-	}
-
-	if (!newConfig.hatedPlayers.every((cfg) => typeof cfg === "string")) {
-		debugLog("'config.hatedPlayers' items must all be strings");
-
-		invalidConfig++;
-
-		newConfig.hatedPlayers = newConfig.hatedPlayers.filter(
-			(cfg) => typeof cfg === "string",
-		);
+		newConfig.deleteIconWhenPaused = false;
 	}
 
 	if (
@@ -243,7 +158,7 @@ module.exports = (newConfig) => {
 			newConfig.iconPath.startsWith(".") ||
 			!newConfig.iconPath.startsWith("/"))
 	) {
-		debugLog("'config.iconPath' must be a string and must be an absolute path");
+		warnLog("'config.iconPath' must be a string and must be an absolute path");
 
 		invalidConfig++;
 
@@ -263,8 +178,8 @@ module.exports = (newConfig) => {
 					recursive: true,
 				});
 			} catch (e) {
-				debugLog(
-					"There was an error while creating the directory for the song icon",
+				errorLog(
+					"There was an error while creating the directory for the song icon", e
 				);
 
 				invalidConfig++;
@@ -274,12 +189,196 @@ module.exports = (newConfig) => {
 		}
 	}
 
-	if (typeof newConfig.deleteIconWhenPaused !== "boolean") {
-		debugLog("'config.deleteIconWhenPaused' must be a boolean");
+	if (
+		newConfig.ignoredPlayers !== undefined &&
+		newConfig.ignoredPlayers !== null &&
+		!Array.isArray(newConfig.ignoredPlayers)
+	) {
+		warnLog("'config.ignoredPlayers' must be an array");
 
 		invalidConfig++;
 
-		newConfig.deleteIconWhenPaused = false;
+		newConfig.ignoredPlayers = [];
+	}
+
+	if (!newConfig.ignoredPlayers.every((cfg) => typeof cfg === "string")) {
+		warnLog("'config.ignoredPlayers' items must all be strings");
+
+		invalidConfig++;
+
+		newConfig.ignoredPlayers = newConfig.ignoredPlayers.filter(
+			(cfg) => typeof cfg === "string",
+		);
+	}
+
+	if (
+		newConfig.favoritePlayers !== undefined &&
+		newConfig.favoritePlayers !== null &&
+		!Array.isArray(newConfig.favoritePlayers)
+	) {
+		warnLog("'config.favoritePlayers' must be an array");
+
+		invalidConfig++;
+
+		newConfig.favoritePlayers = [];
+	}
+
+	if (!newConfig.favoritePlayers.every((cfg) => typeof cfg === "string")) {
+		warnLog("'config.favoritePlayers' items must all be strings");
+
+		invalidConfig++;
+
+		newConfig.favoritePlayers = newConfig.favoritePlayers.filter(
+			(cfg) => typeof cfg === "string",
+		);
+	}
+
+	if (
+		newConfig.hatedPlayers !== undefined &&
+		newConfig.hatedPlayers !== null &&
+		!Array.isArray(newConfig.hatedPlayers)
+	) {
+		warnLog("'config.hatedPlayers' must be an array");
+
+		invalidConfig++;
+
+		newConfig.hatedPlayers = [];
+	}
+
+	if (!newConfig.hatedPlayers.every((cfg) => typeof cfg === "string")) {
+		warnLog("'config.hatedPlayers' items must all be strings");
+
+		invalidConfig++;
+
+		newConfig.hatedPlayers = newConfig.hatedPlayers.filter(
+			(cfg) => typeof cfg === "string",
+		);
+	}
+
+	if (!Array.isArray(newConfig.sourceOrder)) {
+		warnLog("'config.sourceOrder' must be an array");
+
+		invalidConfig++;
+
+		newConfig.sourceOrder = ["musixmatch", "lrclib"];
+	}
+
+	if (!newConfig.sourceOrder.every((cfg) => typeof cfg === "string")) {
+		warnLog("'config.sourceOrder' items must all be strings");
+
+		invalidConfig++;
+
+		newConfig.sourceOrder = newConfig.sourceOrder.filter(
+			(cfg) => typeof cfg === "string",
+		);
+	}
+
+	if (
+		newConfig.artistUpdateInterval !== undefined &&
+		newConfig.artistUpdateInterval !== null &&
+		(!Number.isInteger(newConfig.artistUpdateInterval) ||
+			newConfig.artistUpdateInterval <= 0)
+	) {
+		warnLog("'config.artistUpdateInterval' must be a positive integer");
+
+		invalidConfig++;
+
+		newConfig.artistUpdateInterval = 1000;
+	}
+
+	if (
+		newConfig.artistUpdateInterval !== global.config.artistUpdateInterval &&
+		global.global.currentIntervalType === "artist"
+	) {
+		infoLog("Restarting the artist interval");
+
+		clearInterval(global.currentInterval);
+
+		global.currentInterval = setInterval(
+			returnArtist,
+			newConfig.artistUpdateInterval || 1000,
+		);
+	}
+
+	if (
+		newConfig.lyricsUpdateInterval !== undefined &&
+		newConfig.lyricsUpdateInterval !== null &&
+		(!Number.isInteger(newConfig.lyricsUpdateInterval) ||
+			newConfig.lyricsUpdateInterval <= 0)
+	) {
+		warnLog("'config.lyricsUpdateInterval' must be a positive integer");
+
+		invalidConfig++;
+
+		newConfig.lyricsUpdateInterval = 500;
+	}
+
+	if (
+		newConfig.lyricsUpdateInterval !== global.config.lyricsUpdateInterval &&
+		global.global.currentIntervalType === "lyrics"
+	) {
+		infoLog("Restarting the lyrics interval");
+
+		clearInterval(global.currentInterval);
+
+		global.currentInterval = setInterval(
+			returnLyrics,
+			newConfig.lyricsUpdateInterval || 1000,
+		);
+	}
+
+	if (
+		newConfig.dataUpdateInterval !== undefined &&
+		newConfig.dataUpdateInterval !== null &&
+		(!Number.isInteger(newConfig.dataUpdateInterval) ||
+			newConfig.dataUpdateInterval <= 0)
+	) {
+		warnLog("'config.dataUpdateInterval' must be a positive integer");
+
+		invalidConfig++;
+
+		newConfig.dataUpdateInterval = 1000;
+	}
+
+	if (
+		newConfig.dataUpdateInterval !== global.config.dataUpdateInterval &&
+		global.global.currentIntervalType === "data"
+	) {
+		infoLog("Restarting the data interval");
+
+		clearInterval(global.currentInterval);
+
+		global.currentInterval = setInterval(
+			returnData,
+			newConfig.dataUpdateInterval || 1000,
+		);
+	}
+
+	if (
+		newConfig.nameUpdateInterval !== undefined &&
+		newConfig.nameUpdateInterval !== null &&
+		(!Number.isInteger(newConfig.nameUpdateInterval) ||
+			newConfig.nameUpdateInterval <= 0)
+	) {
+		warnLog("'config.nameUpdateInterval' must be a positive integer");
+
+		invalidConfig++;
+
+		newConfig.nameUpdateInterval = 1000;
+	}
+
+	if (
+		newConfig.nameUpdateInterval !== global.config.nameUpdateInterval &&
+		global.global.currentIntervalType === "name"
+	) {
+		infoLog("Restarting the name interval");
+
+		clearInterval(global.currentInterval);
+
+		global.currentInterval = setInterval(
+			returnName,
+			newConfig.nameUpdateInterval || 1000,
+		);
 	}
 
 	if (
@@ -289,7 +388,7 @@ module.exports = (newConfig) => {
 			newConfig.defaultVolumeStep <= 0 ||
 			newConfig.defaultVolumeStep > 100)
 	) {
-		debugLog(
+		warnLog(
 			"'config.defaultVolumeStep' must be a positive integer lesser than 100",
 		);
 
@@ -298,60 +397,28 @@ module.exports = (newConfig) => {
 		newConfig.defaultVolumeStep = 5;
 	}
 
-	if (!Array.isArray(newConfig.sourceOrder)) {
-		debugLog("'config.sourceOrder' must be an array");
-
-		invalidConfig++;
-
-		newConfig.sourceOrder = ["musixmatch", "lrclib"];
-	}
-
-	if (!newConfig.sourceOrder.every((cfg) => typeof cfg === "string")) {
-		debugLog("'config.sourceOrder' items must all be strings");
-
-		invalidConfig++;
-
-		newConfig.sourceOrder = newConfig.sourceOrder.filter(
-			(cfg) => typeof cfg === "string",
-		);
-	}
-
-	if (typeof newConfig.tooltipIncludeSongMetadata !== "boolean") {
-		debugLog("'config.tooltipIncludeSongMetadata' must be a boolean");
-
-		invalidConfig++;
-
-		newConfig.tooltipIncludeSongMetadata = false;
-	}
-
 	if (
-		newConfig.tooltipMetadataDivider !== undefined &&
-		newConfig.tooltipMetadataDivider !== null &&
-		(typeof newConfig.tooltipMetadataDivider !== "string" ||
-			newConfig.tooltipMetadataDivider.length !== 1)
+		newConfig.marqueeMinLength !== undefined &&
+		newConfig.marqueeMinLength !== null &&
+		(!Number.isInteger(newConfig.marqueeMinLength) ||
+			newConfig.marqueeMinLength <= 0)
 	) {
-		debugLog(
-			"'config.tooltipMetadataDivider' must be a string and must be 1 character long",
-		);
+		warnLog("'config.marqueeMinLength' must be a positive integer");
 
 		invalidConfig++;
 
-		newConfig.tooltipMetadataDivider = "-";
+		newConfig.marqueeMinLength = 30;
 	}
 
-    if (typeof newConfig.tooltipSourceIncludeCachedNotice !== "boolean") {
-		debugLog("'config.tooltipSourceIncludeCachedNotice' must be a boolean");
-
-		invalidConfig++;
-
-		newConfig.tooltipSourceIncludeCachedNotice = true;
+	if (config.marqueeMinLength !== newConfig.marqueeMinLength) {
+		currentMarqueeIndex = 0;
 	}
 
 	if (invalidConfig > 0) {
 		try {
 			fs.writeFileSync(global.configFile, JSON.stringify(newConfig, null, 4));
 		} catch (e) {
-			debugLog("Something went wrong while updating the config file...", e);
+			errorLog("Something went wrong while updating the config file...", e);
 		}
 
 		return false;

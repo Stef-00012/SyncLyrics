@@ -10,7 +10,7 @@ module.exports = (metadata) => {
 		return null;
 	}
 
-	debugLog("Fetching song icon");
+	infoLog("Fetching song icon");
 
 	const iconPath =
 		global.config.iconPath || path.join(configFolder, "icon.png");
@@ -27,7 +27,7 @@ module.exports = (metadata) => {
 					try {
 						fs.writeFileSync(iconPath, buffer);
 					} catch (e) {
-						debugLog("Something went wrong while saving the song icon");
+						errorLog("Something went wrong while saving the song icon", e);
 
 						deleteIcon();
 
@@ -37,7 +37,7 @@ module.exports = (metadata) => {
 
 			if (error) return null;
 		} catch (e) {
-			debugLog("Something went wrong while fetching the icon URL");
+			errorLog("Something went wrong while fetching the icon URL", e);
 
 			deleteIcon();
 
@@ -49,7 +49,7 @@ module.exports = (metadata) => {
 		try {
 			fs.copyFileSync(path, iconPath);
 		} catch (e) {
-			debugLog("Something went wrong while copying the file");
+			errorLog("Something went wrong while copying the file", e);
 
 			deleteIcon();
 

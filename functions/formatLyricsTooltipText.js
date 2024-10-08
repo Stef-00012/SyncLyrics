@@ -4,9 +4,7 @@ module.exports = (data, metadata = {}) => {
 	const tooltipColor = global.config.tooltipCurrentLyricColor || "#cba6f7";
 
 	let tooltipMetadata = global.config.tooltipIncludeSongMetadata
-		? escapeMarkup(
-				`${metadata.track}\n${metadata.artist}\n${metadata.album}\n\n`,
-			)
+		? `<span color="${config.tooltipMetadataTrackColor || "#ffffff"}">${escapeMarkup(metadata.track)}</span>\n<span color="${config.tooltipMetadataArtistColor || "#ffffff"}">${escapeMarkup(metadata.artist)}</span>\n<span color="${config.tooltipMetadataAlbumColor || "#ffffff"}">${escapeMarkup(metadata.album)}</span>\n\n`
 		: "";
 
 	const previousLyrics =
@@ -18,7 +16,7 @@ module.exports = (data, metadata = {}) => {
 		data.next.length > 0 ? `\n${escapeMarkup(data.next.join("\n"))}` : "";
 
 	const source = global.lyricsSource
-		? `\n\n<span color="${global.config.playerSourceColor || "#89b4fa"}">[Source: ${global.lyricsSource}${global.lyricsCached && global.config.tooltipSourceIncludeCachedNotice ? " - Cached" : ""}]</span>`
+		? `\n\n<span color="${global.config.tooltipPlayerSourceColor || "#89b4fa"}">[Source: ${global.lyricsSource}${global.lyricsCached && global.config.tooltipSourceIncludeCachedNotice ? " - Cached" : ""}]</span>`
 		: "";
 
 	const maxLength = Math.max(
@@ -29,9 +27,16 @@ module.exports = (data, metadata = {}) => {
 		centerText(source || "", true),
 	);
 
+	const metadataDivider = (
+		typeof config.tooltipMetadataDivider === "string" &&
+		config.tooltipMetadataDivider.length === 1
+			? config.tooltipMetadataDivider
+			: "-"
+	).repeat(maxLength);
+
 	tooltipMetadata =
 		tooltipMetadata.length > 0
-			? `${tooltipMetadata}${(typeof config.tooltipMetadataDivider === "string" && config.tooltipMetadataDivider.length === 1 ? config.tooltipMetadataDivider : "-").repeat(maxLength)}\n\n`
+			? `${tooltipMetadata}<span color="${config.tooltipMetadataDividerColor || "#ffffff"}">${metadataDivider}</span>\n\n`
 			: "";
 
 	const tooltip = `${tooltipMetadata}${previousLyrics}<span color="${

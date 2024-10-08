@@ -8,7 +8,7 @@ module.exports = () => {
 				JSON.stringify(global.config, null, 4),
 			);
 		} catch (e) {
-			debugLog("Something went wrong while creating the config file...", e);
+			errorLog("Something went wrong while creating the config file...", e);
 
 			process.exit(0);
 		}
@@ -21,7 +21,7 @@ module.exports = () => {
 	try {
 		newConfig = JSON.parse(configFileContent);
 	} catch (e) {
-		debugLog("Config file is not a valid JSON");
+		errorLog("Config file is not a valid JSON");
 
 		process.exit(0);
 	}

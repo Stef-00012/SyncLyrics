@@ -7,7 +7,7 @@ module.exports = async (metadata) => {
 	const localLyricsFile = path.join(configFolder, "lyrics", `${trackId}.txt`);
 
 	if (fs.existsSync(localLyricsFile)) {
-		debugLog("Loading lyrics from local file");
+		infoLog("Loading lyrics from local file");
 
 		const lyrics = fs.readFileSync(localLyricsFile, "utf-8");
 
@@ -19,7 +19,7 @@ module.exports = async (metadata) => {
 	}
 
 	if (!global.cachedLyrics) {
-		debugLog("No cached lyrics, fetching the song data");
+		infoLog("No cached lyrics, fetching the song data");
 
 		global.lyricsCached = false;
 
@@ -27,7 +27,7 @@ module.exports = async (metadata) => {
 	}
 
 	if (metadata.trackId !== global.cachedLyrics.trackId) {
-		debugLog(
+		infoLog(
 			"Cached song is different from current song, fetching the song data",
 		);
 
@@ -38,7 +38,7 @@ module.exports = async (metadata) => {
 	}
 
 	if (!global.cachedLyrics.lyrics) {
-		debugLog("Cached lyrics are null");
+		infoLog("Cached lyrics are null");
 
 		global.lyricsCached = false;
 
