@@ -83,7 +83,7 @@ module.exports = (player, skipPaused = true, retry = true) => {
 		iconUrl: rawMetadata[5],
 		playing: rawMetadata[6] === "Playing",
 		volume: Math.round(rawMetadata[7] * 100),
-		currentMs: Number.parseFloat(rawMetadata[8]) / 1000 + 1,
+		currentMs: Number.parseFloat(rawMetadata[8]) / 1000,
 	};
 
 	const metadataTrackId = metadata.trackId.split("/").pop();
