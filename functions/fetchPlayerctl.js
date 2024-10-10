@@ -24,11 +24,11 @@ module.exports = (player, skipPaused = true, retry = true) => {
 			"album",
 			"title",
 			"mpris:trackid",
-			"mpris:length",
+			"mpris:length / 1000",
 			"mpris:artUrl",
 			"status",
-			"volume",
-			"position",
+			"volume * 100",
+			"position / 1000",
 		]
 			.map((arg) => `{{${arg}}}`)
 			.join("||||");
@@ -79,11 +79,11 @@ module.exports = (player, skipPaused = true, retry = true) => {
 		album: rawMetadata[1],
 		track: rawMetadata[2],
 		trackId: rawMetadata[3],
-		lengthMs: Number.parseFloat(rawMetadata[4]) / 1000,
+		lengthMs: Number.parseFloat(rawMetadata[4]),
 		iconUrl: rawMetadata[5],
 		playing: rawMetadata[6] === "Playing",
-		volume: Math.round(rawMetadata[7] * 100),
-		currentMs: Number.parseFloat(rawMetadata[8]) / 1000,
+		volume: Math.round(rawMetadata[7]),
+		currentMs: Number.parseFloat(rawMetadata[8]),
 	};
 
 	const metadataTrackId = metadata.trackId.split("/").pop();
