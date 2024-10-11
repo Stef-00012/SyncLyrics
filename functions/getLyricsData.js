@@ -5,33 +5,16 @@ module.exports = (metadata, lyrics) => {
 	let firstTimestamp;
 	let lastTimestamp;
 
-	const lyricsSplit = lyrics
-		.split("\n")
-		.map((lyric) => {
-			let lyricText = lyric.split(" ");
+	const parsedLyrics = parseLyrics(lyrics)
 
-			const time = lyricText.shift().replace(/[\[\]]/g, "");
-
-			lyricText = escapeMarkup(lyricText.join(" "));
-
-			if (lyricText.length > 0) return [time, lyricText];
-		})
-		.filter(Boolean);
-
-	for (const lyric of lyricsSplit) {
-		const timestamp = lyric[0];
-		const text = lyric[1];
+	for (const lyric of parsedLyrics) {
+		const timestamp = lyric.time;
+		const text = lyric.text;
 
 		if (!firstLyric) firstLyric = text;
 		if (!firstTimestamp) firstTimestamp = timestamp;
 
-		const minutes = timestamp.split(":")[0];
-		const seconds = timestamp.split(":")[1];
-
-		const totalSeconds =
-			Number.parseFloat(minutes) * 60 + Number.parseFloat(seconds);
-
-		if (metadata.currentMs / 1000 >= totalSeconds) {
+		if (metadata.currentMs / 1000 >= timestamp) {
 			lastLyric = text;
 			lastTimestamp = timestamp;
 		}
@@ -49,23 +32,23 @@ module.exports = (metadata, lyrics) => {
 	let previousLinesAmount = 0;
 	let nextLinesAmount = 0;
 
-	const currentLyricIndex = lyricsSplit.findIndex(
-		(lyric) => lyric[0] === searchTimestamp && lyric[1] === searchLyric,
+	const currentLyricIndex = parsedLyrics.findIndex(
+		(lyric) => lyric.time === searchTimestamp && lyric.text === searchLyric,
 	);
 
 	if (currentLyricIndex === 1) previousLinesAmount = 1;
 	else if (currentLyricIndex === 2) previousLinesAmount = 2;
 	else if (currentLyricIndex >= 3) previousLinesAmount = 3;
 
-	if (currentLyricIndex === lyricsSplit.length - 1) nextLinesAmount = 1;
-	else if (currentLyricIndex === lyricsSplit.length - 2) nextLinesAmount = 2;
-	else if (currentLyricIndex <= lyricsSplit.length - 3) nextLinesAmount = 3;
+	if (currentLyricIndex === parsedLyrics.length - 1) nextLinesAmount = 1;
+	else if (currentLyricIndex === parsedLyrics.length - 2) nextLinesAmount = 2;
+	else if (currentLyricIndex <= parsedLyrics.length - 3) nextLinesAmount = 3;
 
-	const previousLines = [...lyricsSplit]
+	const previousLines = [...parsedLyrics]
 		.splice(currentLyricIndex - previousLinesAmount, previousLinesAmount)
 		.map((lyric) => lyric[1]);
 
-	const nextLines = [...lyricsSplit]
+	const nextLines = [...parsedLyrics]
 		.splice(currentLyricIndex + 1, nextLinesAmount)
 		.map((lyric) => lyric[1]);
 
