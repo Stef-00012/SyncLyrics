@@ -46,11 +46,11 @@ module.exports = (metadata, lyrics) => {
 
 	const previousLines = [...parsedLyrics]
 		.splice(currentLyricIndex - previousLinesAmount, previousLinesAmount)
-		.map((lyric) => lyric[1]);
+		.map((lyric) => lyric.text);
 
 	const nextLines = [...parsedLyrics]
 		.splice(currentLyricIndex + 1, nextLinesAmount)
-		.map((lyric) => lyric[1]);
+		.map((lyric) => lyric.text);
 
 	return {
 		previous: previousLines,
