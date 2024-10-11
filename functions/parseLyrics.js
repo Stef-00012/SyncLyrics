@@ -1,26 +1,52 @@
 module.exports = (lyrics) => {
-	const lyricsSplit = lyrics
-		.split("\n")
-		.map((lyric) => {
-			let lyricText = lyric.split(" ");
+	const lyricsSplit = lyrics.split("\n");
 
-			const time = lyricText.shift().replace(/[\[\]]/g, "");
+	const formattedLyrics = [];
+	let lastTime;
 
-			lyricText = lyricText.join(" ");
+	for (const index in lyricsSplit) {
+		let lyricText = lyricsSplit[index].split(" ");
 
-			const minutes = time.split(":")[0];
-			const seconds = time.split(":")[1];
+		const time = lyricText.shift().replace(/[\[\]]/g, "");
 
-			const totalSeconds =
-				Number.parseFloat(minutes) * 60 + Number.parseFloat(seconds);
+		lyricText = lyricText.join(" ");
 
-			if (lyricText.length > 0)
-				return {
-					time: totalSeconds,
-					text: lyricText,
-				};
-		})
-		.filter(Boolean);
+		const minutes = time.split(":")[0];
+		const seconds = time.split(":")[1];
 
-	return lyricsSplit;
+		const totalSeconds =
+			Number.parseFloat(minutes) * 60 + Number.parseFloat(seconds);
+
+		const instrumentalLyricIndicator =
+			config.instrumentalLyricIndicator || " ";
+
+		if (index === "0" && totalSeconds > 3 && instrumentalLyricIndicator) {
+			formattedLyrics.push({
+				time: 0,
+				text: instrumentalLyricIndicator,
+			});
+		}
+
+		if (lyricText.length > 0) {
+			lastTime = time;
+
+			formattedLyrics.push({
+				time: totalSeconds,
+				text: lyricText,
+			});
+
+			continue;
+		}
+
+		if (instrumentalLyricIndicator && (!lastTime || lastTime - time > 3)) {
+			lastTime = time;
+
+			formattedLyrics.push({
+				time: totalSeconds,
+				text: instrumentalLyricIndicator,
+			});
+		}
+	}
+
+	return formattedLyrics;
 };

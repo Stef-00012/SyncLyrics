@@ -5,14 +5,14 @@ module.exports = (metadata, lyrics) => {
 	let firstTimestamp;
 	let lastTimestamp;
 
-	const parsedLyrics = parseLyrics(lyrics)
+	const parsedLyrics = parseLyrics(lyrics);
 
 	for (const lyric of parsedLyrics) {
 		const timestamp = lyric.time;
 		const text = lyric.text;
 
 		if (!firstLyric) firstLyric = text;
-		if (!firstTimestamp) firstTimestamp = timestamp;
+		if (!firstTimestamp && firstTimestamp !== 0) firstTimestamp = timestamp;
 
 		if (metadata.currentMs / 1000 >= timestamp) {
 			lastLyric = text;

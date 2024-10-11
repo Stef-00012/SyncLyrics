@@ -56,6 +56,7 @@ The avaible options are:
 - `favoritePlayers` (Array\<String>): List of players that will be prioritized over others.
 - `hatedPlayers` (Array\<String>): Opposite of `favoritePlayers`.
 - `sourceOrder` (Array\<String>): The order in which the sources will be fetched (Removing a source from here means the lyrics will never be fetched from that source). [^3]
+- `instrumentalLyricIndicator` (String): The text to use when there is a music section without lyrics.
 - `artistUpdateInterval` (Number): How often update the output returned by the `--artist` or `-artist` parameter (in milliseconds).
 - `lyricsUpdateInterval` (Number): How often update the output returned by default (in milliseconds).
 - `dataUpdateInterval` (Number): How often update the output returned by the `--data` or `-d` parameter (in milliseconds).
@@ -65,7 +66,7 @@ The avaible options are:
 - `defaultVolumeStep` (Number): The default step for volume increase/decrease.
 
 [^2]: Avaible Log Levels: `none`, `info`, `warn`, `error`, `debug`.
-[^3]: Current Avaible Sources are<br />- [lrclib.net](https://lrclib.net) (`lrclib`)<br />- [Musixmatch](https://musixmatch.com) (`musixmatch`).
+[^3]: Current Avaible Sources are<br />- [lrclib.net](https://lrclib.net) (`lrclib`)<br />- [Musixmatch](https://musixmatch.com) (`musixmatch`)<br />- [Netease](https://music.163.com/) (`netease`).
 
 ### Example Config
 
@@ -94,8 +95,10 @@ The avaible options are:
     ],
     "sourceOrder": [
         "musixmatch",
-        "lrclib"
+        "lrclib",
+        "netease"
     ],
+    "instrumentalLyricIndicator": " ",
     "artistUpdateInterval": 1000,
     "lyricsUpdateInterval": 500,
     "dataUpdateInterval": 1000,

@@ -6,7 +6,7 @@ module.exports = async (metadata, tokenData) => {
 		lyrics: null,
 	};
 
-    const duration = metadata.length / 1000
+	const duration = metadata.length / 1000;
 
 	const searchParams = new URLSearchParams({
 		app_id: "web-desktop-app-v1.0",
@@ -17,8 +17,8 @@ module.exports = async (metadata, tokenData) => {
 		page_size: 20,
 		page: 1,
 		f_has_subtitle: 1,
-        q_duration: duration,
-        f_subtitle_length: Math.floor(duration),
+		q_duration: duration,
+		f_subtitle_length: Math.floor(duration),
 	});
 
 	const url = `https://apic-desktop.musixmatch.com/ws/1.1/track.search?${searchParams}`;
@@ -108,7 +108,7 @@ module.exports = async (metadata, tokenData) => {
 			return null;
 		}
 
-		commonTrackId = track?.track?.commontrack_id;
+		const commonTrackId = track?.track?.commontrack_id;
 
 		debugLog("Musixmatch commontrack_id", commonTrackId);
 

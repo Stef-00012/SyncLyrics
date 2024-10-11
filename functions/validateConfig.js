@@ -262,7 +262,7 @@ module.exports = (newConfig) => {
 
 		invalidConfig++;
 
-		newConfig.sourceOrder = ["musixmatch", "lrclib"];
+		newConfig.sourceOrder = ["musixmatch", "lrclib", "netease"];
 	}
 
 	if (!newConfig.sourceOrder.every((cfg) => typeof cfg === "string")) {
@@ -273,6 +273,18 @@ module.exports = (newConfig) => {
 		newConfig.sourceOrder = newConfig.sourceOrder.filter(
 			(cfg) => typeof cfg === "string",
 		);
+	}
+
+	if (
+		newConfig.instrumentalLyricIndicator !== undefined &&
+		newConfig.instrumentalLyricIndicator !== null &&
+		typeof newConfig.instrumentalLyricIndicator !== "string"
+	) {
+		warnLog("'config.instrumentalLyricIndicator' must be a string");
+
+		invalidConfig++;
+
+		newConfig.instrumentalLyricIndicator = " ";
 	}
 
 	if (

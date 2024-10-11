@@ -10,12 +10,13 @@ module.exports = async (metadata) => {
 	const avaibleSources = {
 		musixmatch: fetchLyricsMusixmatch,
 		lrclib: fetchLyricsLrcLib,
+		netease: fetchLyricsNetease,
 	};
 
-	let sources = config?.sources || ["musixmatch", "lrclib"];
+	let sources = config?.sources || ["musixmatch", "lrclib", "netease"];
 
 	if (sources.every((source) => !Object.keys(avaibleSources).includes(source)))
-		sources = ["musixmatch", "lrclib"];
+		sources = ["musixmatch", "lrclib", "netease"];
 
 	for (const source of sources) {
 		infoLog(`Trying to fetch the lyrics from the source "${source}"`);

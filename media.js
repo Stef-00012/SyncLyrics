@@ -64,6 +64,7 @@ global.config = {
 	hatedPlayers: ["chromium"],
 	sourceOrder: ["musixmatch", "lrclib"],
 
+	instrumentalLyricIndicator: " ",
 	dataUpdateInterval: 1000,
 	artistUpdateInterval: 1000,
 	nameUpdateInterval: 1000,
