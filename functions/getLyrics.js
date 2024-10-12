@@ -6,13 +6,18 @@ module.exports = async (metadata) => {
 
 	const localLyricsFile = path.join(configFolder, "lyrics", `${trackId}.txt`);
 
-	if (fs.existsSync(localLyricsFile)) {
+	if (!global.cachedLyrics && fs.existsSync(localLyricsFile)) {
 		infoLog("Loading lyrics from local file");
 
 		const lyrics = fs.readFileSync(localLyricsFile, "utf-8");
 
 		if (lyrics.length > 0 && lyrics.startsWith("[")) {
 			global.lyricsSource = "Local File";
+
+			global.cachedLyrics = {
+				trackId: metadata.trackId,
+				lyrics,
+			};
 
 			return lyrics;
 		}
