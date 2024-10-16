@@ -126,6 +126,30 @@ fs.watchFile(configFile, () => {
 
 infoLog(`Using config folder: ${configFolder}`);
 
+if (['--help', '-h'].some(arg => process.argv.includes(arg))) {
+	outputLog(`\x1b[31;1mIMPORTANT: Requires playerctl
+
+\x1b[32mUsage: synclyrics [-flags]
+
+\x1b[0mFlags:
+\x1b[33m--volume-down=X \x1b[0m| \x1b[33m-vol-=X \x1b[0m: Decreases the volume by X%.
+\x1b[33m--volume-up=X   \x1b[0m| \x1b[33m-vol+=X \x1b[0m: Increases the volume by X%.
+\x1b[33m--play-toggle   \x1b[0m| \x1b[33m-pt     \x1b[0m: Toggle player's play-pause state.
+\x1b[33m--show-lyrics   \x1b[0m| \x1b[33m-sl     \x1b[0m: Saves song's lyrics in a file (/tmp/lyrics), saves in ~/Downloads/SyncLyrics/<song>.txt when ran with --save or -s.
+\x1b[33m--show-cover    \x1b[0m| \x1b[33m-sc     \x1b[0m: Saves song's icon in a file ($CONFIG_FOLDER/icon.png, saves in ~/Downloads/SyncLyrics/<song>.txt when ran with --save or -s).
+\x1b[33m--trackid       \x1b[0m| \x1b[33m-tid    \x1b[0m: Returns song's ID.
+\x1b[33m--artist        \x1b[0m| \x1b[33m-a      \x1b[0m: Returns song's artist.
+\x1b[33m--cover         \x1b[0m| \x1b[33m-c      \x1b[0m: Returns an absolute path to the song's icon.
+\x1b[33m--data          \x1b[0m| \x1b[33m-d      \x1b[0m: Returns song's artist & name together.
+\x1b[33m--name          \x1b[0m| \x1b[33m-n      \x1b[0m: Returns song's name.
+
+Envs:
+\x1b[33mCONFIG_FOLDER \x1b[0m: Sets the config folder path
+	\x1b[34mExample: CONFIG_FOLDER=/path/to/config synclyrics [-flags]`)
+
+	process.exit(0)
+}
+
 if (["--show-lyrics", "-sl"].some((arg) => process.argv.includes(arg))) {
 	(async () => {
 		const metadata = fetchPlayerctl();
@@ -229,7 +253,7 @@ if (["--trackid", "-tid"].some((arg) => process.argv.includes(arg))) {
 
 	const trackId = metadata.trackId.split("/").pop();
 
-	infoLog(`Current track ID is: ${trackId}`);
+	outputLog(`Current track ID is: ${trackId}`);
 
 	process.exit(0);
 }
