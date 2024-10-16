@@ -1,6 +1,6 @@
 {
   "name": "synclyrics",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "Get the synced lyrics of your current song",
   "main": "media.js",
   "bin": {
