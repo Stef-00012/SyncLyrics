@@ -3,3 +3,4 @@ config
 media.sh
 style.css
 test.js
+node_modules

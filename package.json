@@ -6,6 +6,10 @@
   "bin": {
     "synclyrics": "media.js"
   },
+  "files": [
+    "functions/*",
+    "media.js"
+  ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -29,5 +33,9 @@
   "bugs": {
     "url": "https://github.com/Stef-00012/SyncLyrics/issues"
   },
-  "homepage": "https://github.com/Stef-00012/SyncLyrics#readme"
+  "homepage": "https://github.com/Stef-00012/SyncLyrics#readme",
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "np": "^10.0.7"
+  }
 }
