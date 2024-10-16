@@ -1,6 +1,6 @@
 {
-  "name": "@stef-00012/synclyrics-cli",
-  "version": "1.2.0",
+  "name": "@stef-0012/synclyrics-cli",
+  "version": "1.0.0",
   "description": "Get the synced lyrics of your current song",
   "main": "media.js",
   "bin": {
@@ -13,6 +13,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "type": "commonjs",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Stef-00012/SyncLyrics.git"
