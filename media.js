@@ -281,7 +281,7 @@ if (["--cover", "-c"].some((arg) => process.argv.includes(arg))) {
 	if (config.deleteIconWhenPaused) {
 		const metadata = fetchPlayerctl(player, false, false);
 
-		if (!metadata.playing) {
+		if (metadata || !metadata?.playing) {
 			outputLog();
 
 			process.exit(0);
