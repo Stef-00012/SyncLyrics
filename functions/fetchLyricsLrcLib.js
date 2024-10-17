@@ -20,6 +20,7 @@ module.exports = async (metadata) => {
 	const url = `https://lrclib.net/api/search?${searchParams}`;
 
 	try {
+		debugLog('Running fetch - Lrclib lyrics')
 		const res = await fetch(url, {
 			headers: {
 				"Lrclib-Client":

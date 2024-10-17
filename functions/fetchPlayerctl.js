@@ -1,6 +1,6 @@
 const { execSync } = require("node:child_process");
 
-module.exports = (player, skipPaused = true, retry = true) => {
+module.exports = async (player, skipPaused = true, retry = true) => {
 	if (!player) player = getPlayer(skipPaused);
 	const fullPlayer = getPlayer(false);
 
@@ -33,6 +33,7 @@ module.exports = (player, skipPaused = true, retry = true) => {
 			.map((arg) => `{{${arg}}}`)
 			.join("||||");
 
+		debugLog("Fetching playerctl...")
 		rawMetadata = execSync(`playerctl metadata -p ${player} --format "${args}"`)
 			.toString()
 			.trim()
@@ -51,7 +52,7 @@ module.exports = (player, skipPaused = true, retry = true) => {
 			if (newPlayer) {
 				infoLog(`Trying to use another player (${newPlayer})`);
 
-				return fetchPlayerctl(newPlayer, skipPaused);
+				return await fetchPlayerctl(newPlayer, skipPaused);
 			}
 		}
 

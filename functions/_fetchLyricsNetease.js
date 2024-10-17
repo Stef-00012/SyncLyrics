@@ -15,6 +15,7 @@ module.exports = async (metadata, trackId) => {
 	try {
 		debugLog("Netease lyrics fetch URL:", url);
 
+		debugLog('Running fetch - Netease lyrics')
 		const res = await fetch(url, {
 			headers: {
 				"User-Agent":

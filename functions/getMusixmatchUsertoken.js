@@ -46,6 +46,7 @@ module.exports = async (cookies) => {
 		"https://apic-desktop.musixmatch.com/ws/1.1/token.get?user_language=en&app_id=web-desktop-app-v1.0";
 
 	try {
+		debugLog('Running fetch - Musixmatch usertoken')
 		const res = await fetch(url, {
 			redirect: "manual",
 			headers: {

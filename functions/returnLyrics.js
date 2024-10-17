@@ -1,5 +1,5 @@
 module.exports = async () => {
-	const metadata = fetchPlayerctl();
+	const metadata = await fetchPlayerctl();
 
 	if (!metadata) return outputLog();
 

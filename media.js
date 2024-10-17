@@ -96,6 +96,7 @@ global.fetchingMxmToken = false;
 global.currentMarqueeIndex = 0;
 global.global.fetchingTrackId;
 global.lyricsCached = false;
+global.fetchingIcon = false;
 global.lastStoppedPlayer;
 global.playerOffset = 0;
 global.fetching = false;
@@ -150,10 +151,10 @@ Envs:
 	process.exit(0)
 }
 
-if (["--show-lyrics", "-sl"].some((arg) => process.argv.includes(arg))) {
-	(async () => {
-		const metadata = fetchPlayerctl();
-
+(async () => {
+	if (["--show-lyrics", "-sl"].some((arg) => process.argv.includes(arg))) {
+		const metadata = await fetchPlayerctl();
+	
 		if (!metadata) process.exit(0);
 
 		const lyrics = await getLyrics(metadata);
@@ -194,176 +195,176 @@ if (["--show-lyrics", "-sl"].some((arg) => process.argv.includes(arg))) {
 		execSync(`xdg-open ${tmpFilePath}`);
 
 		process.exit(0);
-	})();
-}
-
-if (["--play-toggle", "-pt"].some((arg) => process.argv.includes(arg))) {
-	const player = getPlayer(false);
-
-	if (!player && !global.lastStoppedPlayer) process.exit(0);
-
-	execSync(`playerctl -p ${global.lastStoppedPlayer || player} play-pause`);
-
-	global.lastStoppedPlayer = player;
-
-	process.exit(0);
-}
-
-if (["--show-cover", "-sc"].some((arg) => process.argv.includes(arg))) {
-	const iconPath = config.iconPath || path.join(configFolder, "icon.png");
-
-	if (!fs.existsSync(iconPath)) {
-		warnLog("file doesn't exist")
-
-		process.exit(0)
-	};
-
-	if (["--save", "-s"].some((arg) => process.argv.includes(arg))) {
-		const metadata = fetchPlayerctl();
-
-		if (!metadata) process.exit(0);
-
-		const downloadFolder = path.join(
-			process.env.HOME,
-			"Downloads",
-			"syncLyric",
-		);
-
-		if (!fs.existsSync(downloadFolder))
-			fs.mkdirSync(downloadFolder, {
-				recursive: true,
-			});
-
-		const fileName = `${metadata.track.replaceAll(" ", "_")}-${metadata.artist.replaceAll(" ", "_")}.png`;
-
-		const filePath = path.join(downloadFolder, fileName);
-
-		fs.copyFileSync(iconPath, filePath);
-
-		execSync(`xdg-open ${filePath}`);
-
+	}
+	
+	if (["--play-toggle", "-pt"].some((arg) => process.argv.includes(arg))) {
+		const player = getPlayer(false);
+	
+		if (!player && !global.lastStoppedPlayer) process.exit(0);
+	
+		execSync(`playerctl -p ${global.lastStoppedPlayer || player} play-pause`);
+	
+		global.lastStoppedPlayer = player;
+	
 		process.exit(0);
 	}
-
-	execSync(`xdg-open ${iconPath}`);
-
-	process.exit(0);
-}
-
-if (["--trackid", "-tid"].some((arg) => process.argv.includes(arg))) {
-	const metadata = fetchPlayerctl();
-
-	if (!metadata) process.exit(0);
-
-	const trackId = metadata.trackId.split("/").pop();
-
-	outputLog(`Current track ID is: ${trackId}`);
-
-	process.exit(0);
-}
-
-if (["--artist", "-a"].some((arg) => process.argv.includes(arg))) {
-	if (!global.currentInterval) {
-		global.global.currentIntervalType = "artist";
-
-		global.currentInterval = setInterval(
-			returnArtist,
-			config.artistUpdateInterval || 1000,
-		);
-	}
-}
-
-if (["--cover", "-c"].some((arg) => process.argv.includes(arg))) {
-	const player = getPlayer(false);
-
-	if (!player) {
-		outputLog();
-
-		process.exit(0);
-	}
-
-	if (config.deleteIconWhenPaused) {
-		const metadata = fetchPlayerctl(player, false, false);
-
-		if (!metadata || !metadata?.playing) {
-			outputLog();
-
+	
+	if (["--show-cover", "-sc"].some((arg) => process.argv.includes(arg))) {
+		const iconPath = config.iconPath || path.join(configFolder, "icon.png");
+	
+		if (!fs.existsSync(iconPath)) {
+			warnLog("file doesn't exist")
+	
+			process.exit(0)
+		};
+	
+		if (["--save", "-s"].some((arg) => process.argv.includes(arg))) {
+			const metadata = await fetchPlayerctl();
+	
+			if (!metadata) process.exit(0);
+	
+			const downloadFolder = path.join(
+				process.env.HOME,
+				"Downloads",
+				"syncLyric",
+			);
+	
+			if (!fs.existsSync(downloadFolder))
+				fs.mkdirSync(downloadFolder, {
+					recursive: true,
+				});
+	
+			const fileName = `${metadata.track.replaceAll(" ", "_")}-${metadata.artist.replaceAll(" ", "_")}.png`;
+	
+			const filePath = path.join(downloadFolder, fileName);
+	
+			fs.copyFileSync(iconPath, filePath);
+	
+			execSync(`xdg-open ${filePath}`);
+	
 			process.exit(0);
+		}
+	
+		execSync(`xdg-open ${iconPath}`);
+	
+		process.exit(0);
+	}
+	
+	if (["--trackid", "-tid"].some((arg) => process.argv.includes(arg))) {
+		const metadata = await fetchPlayerctl();
+	
+		if (!metadata) process.exit(0);
+	
+		const trackId = metadata.trackId.split("/").pop();
+	
+		outputLog(`Current track ID is: ${trackId}`);
+	
+		process.exit(0);
+	}
+	
+	if (["--artist", "-a"].some((arg) => process.argv.includes(arg))) {
+		if (!global.currentInterval) {
+			global.global.currentIntervalType = "artist";
+	
+			global.currentInterval = setInterval(
+				returnArtist,
+				config.artistUpdateInterval || 1000,
+			);
+		}
+	}
+	
+	if (["--cover", "-c"].some((arg) => process.argv.includes(arg))) {
+		const player = getPlayer(false);
+	
+		if (!player) {
+			outputLog();
+	
+			process.exit(0);
+		}
+	
+		if (config.deleteIconWhenPaused) {
+			const metadata = await fetchPlayerctl(player, false, false);
+	
+			if (!metadata || !metadata?.playing) {
+				outputLog();
+	
+				process.exit(0);
+			}
+		}
+	
+		outputLog(config.iconPath || path.join(configFolder, "icon.png"));
+	
+		process.exit(0);
+	}
+	
+	if (["--data", "-d"].some((arg) => process.argv.includes(arg))) {
+		if (!global.currentInterval) {
+			global.global.currentIntervalType = "data";
+	
+			global.currentInterval = setInterval(
+				returnData,
+				config.dataUpdateInterval || 1000,
+			);
+		}
+	}
+	
+	if (["--name", "-n"].some((arg) => process.argv.includes(arg))) {
+		if (!global.currentInterval) {
+			global.global.currentIntervalType = "name";
+	
+			global.currentInterval = setInterval(
+				returnName,
+				config.nameUpdateInterval || 1000,
+			);
 		}
 	}
 
-	outputLog(config.iconPath || path.join(configFolder, "icon.png"));
-
-	process.exit(0);
-}
-
-if (["--data", "-d"].some((arg) => process.argv.includes(arg))) {
-	if (!global.currentInterval) {
-		global.global.currentIntervalType = "data";
-
-		global.currentInterval = setInterval(
-			returnData,
-			config.dataUpdateInterval || 1000,
-		);
-	}
-}
-
-if (["--name", "-n"].some((arg) => process.argv.includes(arg))) {
-	if (!global.currentInterval) {
-		global.global.currentIntervalType = "name";
-
-		global.currentInterval = setInterval(
-			returnName,
-			config.nameUpdateInterval || 1000,
-		);
-	}
-}
-
-const volumeDownArg = process.argv.find((processArg) =>
-	["--volume-down", "-vol-"].some((arg) => processArg.startsWith(arg)),
-);
-
-if (volumeDownArg) {
-	const player = getPlayer();
-
-	if (!player && !global.lastStoppedPlayer) process.exit(0);
-
-	const stepAmount =
-		Number.parseInt(volumeDownArg.split("=").pop()) || config.defaultVolumeStep;
-
-	const step = stepAmount * 0.01;
-
-	execSync(
-		`playerctl -p ${global.lastStoppedPlayer || player} volume ${step}-`,
+	const volumeDownArg = process.argv.find((processArg) =>
+		["--volume-down", "-vol-"].some((arg) => processArg.startsWith(arg)),
 	);
-
-	global.lastStoppedPlayer = player;
-
-	process.exit(0);
-}
-
-const volumeUpArg = process.argv.find((processArg) =>
-	["--volume-up", "-vol+"].some((arg) => processArg.startsWith(arg)),
-);
-
-if (volumeUpArg) {
-	const player = getPlayer();
-
-	if (!player && !global.lastStoppedPlayer) process.exit(0);
-
-	const stepAmount =
-		Number.parseInt(volumeUpArg.split("=").pop()) || config.defaultVolumeStep;
-
-	const step = stepAmount * 0.01;
-
-	execSync(
-		`playerctl -p ${global.lastStoppedPlayer || player} volume ${step}+`,
+	
+	if (volumeDownArg) {
+		const player = getPlayer();
+	
+		if (!player && !global.lastStoppedPlayer) process.exit(0);
+	
+		const stepAmount =
+			Number.parseInt(volumeDownArg.split("=").pop()) || config.defaultVolumeStep;
+	
+		const step = stepAmount * 0.01;
+	
+		execSync(
+			`playerctl -p ${global.lastStoppedPlayer || player} volume ${step}-`,
+		);
+	
+		global.lastStoppedPlayer = player;
+	
+		process.exit(0);
+	}
+	
+	const volumeUpArg = process.argv.find((processArg) =>
+		["--volume-up", "-vol+"].some((arg) => processArg.startsWith(arg)),
 	);
-
-	global.lastStoppedPlayer = player;
-
-	process.exit(0);
-}
+	
+	if (volumeUpArg) {
+		const player = getPlayer();
+	
+		if (!player && !global.lastStoppedPlayer) process.exit(0);
+	
+		const stepAmount =
+			Number.parseInt(volumeUpArg.split("=").pop()) || config.defaultVolumeStep;
+	
+		const step = stepAmount * 0.01;
+	
+		execSync(
+			`playerctl -p ${global.lastStoppedPlayer || player} volume ${step}+`,
+		);
+	
+		global.lastStoppedPlayer = player;
+	
+		process.exit(0);
+	}
+})()
 
 if (!global.currentInterval) {
 	global.global.currentIntervalType = "lyrics";

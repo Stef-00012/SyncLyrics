@@ -10,6 +10,7 @@ module.exports = async (metadata) => {
 	try {
 		debugLog("Netease search fetch URL:", url);
 
+		debugLog('Running fetch - Netease search')
 		const res = await fetch(url, {
 			headers: {
 				"User-Agent":

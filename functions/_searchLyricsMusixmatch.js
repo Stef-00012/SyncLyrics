@@ -26,6 +26,7 @@ module.exports = async (metadata, tokenData) => {
 	try {
 		debugLog("Musixmatch search fetch URL:", url);
 
+		debugLog('Running fetch - Musixmatch search')
 		const res = await fetch(url, {
 			headers: {
 				cookie: tokenData.cookies,
