@@ -212,7 +212,11 @@ if (["--play-toggle", "-pt"].some((arg) => process.argv.includes(arg))) {
 if (["--show-cover", "-sc"].some((arg) => process.argv.includes(arg))) {
 	const iconPath = config.iconPath || path.join(configFolder, "icon.png");
 
-	if (!fs.existsSync(iconPath)) process.exit(0);
+	if (!fs.existsSync(iconPath)) {
+		warnLog("file doesn't exist")
+
+		process.exit(0)
+	};
 
 	if (["--save", "-s"].some((arg) => process.argv.includes(arg))) {
 		const metadata = fetchPlayerctl();
