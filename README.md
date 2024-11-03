@@ -14,6 +14,7 @@ Just clone this repository.
 
 1. `git clone https://gtihub.com/Stef-00012/SyncLyrics`.
 2. `cd SyncLyrics`.
+3. `npm i`
 
 ## Usage
 
