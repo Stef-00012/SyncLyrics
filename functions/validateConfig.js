@@ -262,7 +262,7 @@ module.exports = (newConfig) => {
 
 		invalidConfig++;
 
-		newConfig.sourceOrder = ["musixmatch", "lrclib", "netease"];
+		newConfig.sourceOrder = avaibleSources;
 	}
 
 	if (!newConfig.sourceOrder.every((cfg) => typeof cfg === "string")) {
@@ -273,6 +273,14 @@ module.exports = (newConfig) => {
 		newConfig.sourceOrder = newConfig.sourceOrder.filter(
 			(cfg) => typeof cfg === "string",
 		);
+	}
+
+	if (newConfig.sourceOrder.some(source => !avaibleSources.includes(source))) {
+		warnLog("'config.sourceOrder' contains invalid sources");
+
+		invalidConfig++;
+
+		newConfig.sourceOrder = avaibleSources;
 	}
 
 	if (

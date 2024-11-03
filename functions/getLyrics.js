@@ -6,54 +6,42 @@ module.exports = async (metadata) => {
 
 	const localLyricsFile = path.join(configFolder, "lyrics", `${trackId}.txt`);
 
-	if (!global.cachedLyrics && fs.existsSync(localLyricsFile)) {
+	if (fs.existsSync(localLyricsFile)) {
 		infoLog("Loading lyrics from local file");
+
+		if (trackId === global.localLyricsId && global.localLyrics) return {
+			source: "Local File",
+			lyrics: global.localLyrics,
+			cached: true
+		}
 
 		const lyrics = fs.readFileSync(localLyricsFile, "utf-8");
 
 		if (lyrics.length > 0 && lyrics.startsWith("[")) {
-			global.lyricsSource = "Local File";
+			global.localLyricsId = trackId;
+			global.localLyrics = LyricsManager.parseLyrics(lyrics)
 
-			global.cachedLyrics = {
-				trackId: metadata.trackId,
-				lyrics,
+			return {
+				source: "Local File",
+				lyrics: LyricsManager.parseLyrics(lyrics),
+				cached: false
 			};
-
-			return lyrics;
 		}
 	}
 
-	if (!global.cachedLyrics) {
-		infoLog("No cached lyrics, fetching the song data");
+	const res = await LyricsManager.getLyrics({
+		track: metadata.track,
+		artist: metadata.artist,
+		album: metadata.album,
+		length: metadata.lengthMs,
+		lyricsType: ["lineSynced"]
+	})
 
-		global.lyricsCached = false;
+	const lyrics = res.lyrics.lineSynced.parse()
 
-		return await _getLyrics(metadata);
+	return {
+		source: res.lyrics.lineSynced.source,
+		lyrics,
+		cached: res.cached
 	}
-
-	if (metadata.trackId !== global.cachedLyrics.trackId) {
-		infoLog(
-			"Cached song is different from current song, fetching the song data",
-		);
-
-		global.cachedLyrics = null;
-		global.lyricsCached = false;
-
-		return await _getLyrics(metadata);
-	}
-
-	if (!global.cachedLyrics.lyrics) {
-		infoLog("Cached lyrics are null");
-
-		global.lyricsCached = false;
-
-		return null;
-	}
-
-	global.fetchingTrackId = null;
-	global.fetchingSource = null;
-	global.lyricsCached = true;
-	global.fetching = false;
-
-	return global.cachedLyrics.lyrics;
 };

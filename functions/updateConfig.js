@@ -30,5 +30,10 @@ module.exports = () => {
 
 	if (!isConfigValid) return;
 
+	LyricsManager
+		.setLogLevel(newConfig.logLevel)
+		.setInstrumentalLyricsIndicator(newConfig.instrumentalLyricIndicator)
+		.setSources(newConfig.sourceOrder)
+
 	global.config = newConfig;
 };

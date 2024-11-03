@@ -16,11 +16,11 @@ module.exports = async () => {
 	let tooltip;
 
 	if (["--lyrics", "-l"].some((arg) => process.argv.includes(arg))) {
-		const lyrics = await getLyrics(metadata);
+		const res = await getLyrics(metadata);
 
-		if (!lyrics) tooltip = "No Lyrics Avaible";
+		if (!res.lyrics) tooltip = "No Lyrics Avaible";
 		else {
-			const lyricsData = getLyricsData(metadata, lyrics);
+			const lyricsData = getLyricsData(metadata, res);
 
 			tooltip = formatLyricsTooltipText(lyricsData, metadata);
 		}

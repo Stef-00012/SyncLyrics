@@ -3,11 +3,11 @@ module.exports = async () => {
 
 	if (!metadata) return outputLog();
 
-	const lyrics = await getLyrics(metadata);
+	const res = await getLyrics(metadata);
 
-	if (!lyrics) return outputLog(noLyrics);
+	if (!res.lyrics) return outputLog(noLyrics);
 
-	const lyricsData = getLyricsData(metadata, lyrics);
+	const lyricsData = getLyricsData(metadata, res);
 	const tooltip = formatLyricsTooltipText(lyricsData, metadata);
 
 	const output = JSON.stringify({

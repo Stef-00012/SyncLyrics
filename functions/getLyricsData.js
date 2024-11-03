@@ -1,13 +1,15 @@
-module.exports = (metadata, lyrics) => {
+module.exports = (metadata, res) => {
+	const lyrics = res.lyrics
+
 	let firstLyric;
 	let lastLyric;
 
 	let firstTimestamp;
 	let lastTimestamp;
 
-	const parsedLyrics = parseLyrics(lyrics);
+	// const parsedLyrics = parseLyrics(lyrics);
 
-	for (const lyric of parsedLyrics) {
+	for (const lyric of lyrics) {
 		const timestamp = lyric.time;
 		const text = lyric.text;
 
@@ -32,7 +34,7 @@ module.exports = (metadata, lyrics) => {
 	let previousLinesAmount = 0;
 	let nextLinesAmount = 0;
 
-	const currentLyricIndex = parsedLyrics.findIndex(
+	const currentLyricIndex = lyrics.findIndex(
 		(lyric) => lyric.time === searchTimestamp && lyric.text === searchLyric,
 	);
 
@@ -40,15 +42,15 @@ module.exports = (metadata, lyrics) => {
 	else if (currentLyricIndex === 2) previousLinesAmount = 2;
 	else if (currentLyricIndex >= 3) previousLinesAmount = 3;
 
-	if (currentLyricIndex === parsedLyrics.length - 1) nextLinesAmount = 1;
-	else if (currentLyricIndex === parsedLyrics.length - 2) nextLinesAmount = 2;
-	else if (currentLyricIndex <= parsedLyrics.length - 3) nextLinesAmount = 3;
+	if (currentLyricIndex === lyrics.length - 1) nextLinesAmount = 1;
+	else if (currentLyricIndex === lyrics.length - 2) nextLinesAmount = 2;
+	else if (currentLyricIndex <= lyrics.length - 3) nextLinesAmount = 3;
 
-	const previousLines = [...parsedLyrics]
+	const previousLines = [...lyrics]
 		.splice(currentLyricIndex - previousLinesAmount, previousLinesAmount)
 		.map((lyric) => lyric.text);
 
-	const nextLines = [...parsedLyrics]
+	const nextLines = [...lyrics]
 		.splice(currentLyricIndex + 1, nextLinesAmount)
 		.map((lyric) => lyric.text);
 
@@ -56,5 +58,7 @@ module.exports = (metadata, lyrics) => {
 		previous: previousLines,
 		current: searchLyric,
 		next: nextLines,
+		source: res.source,
+		cached: res.cached
 	};
 };

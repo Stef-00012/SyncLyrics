@@ -13,8 +13,8 @@ module.exports = (data, metadata = {}) => {
 	const nextLyrics =
 		data.next.length > 0 ? `\n${escapeMarkup(data.next.join("\n"))}` : "";
 
-	const source = global.lyricsSource
-		? `\n\n<span color="${global.config.tooltipPlayerSourceColor || "#89b4fa"}">[Source: ${global.lyricsSource}${global.lyricsCached && global.config.tooltipSourceIncludeCachedNotice ? " - Cached" : ""}]</span>`
+	const source = data.source
+		? `\n\n<span color="${global.config.tooltipPlayerSourceColor || "#89b4fa"}">[Source: ${data.source}${data.cached && global.config.tooltipSourceIncludeCachedNotice ? " - Cached" : ""}]</span>`
 		: "";
 
 	const maxLength = Math.max(

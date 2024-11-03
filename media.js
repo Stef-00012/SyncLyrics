@@ -1,6 +1,7 @@
+const { SyncLyrics, sources, logLevels } = require("@stef-0012/synclyrics")
 const { execSync } = require("node:child_process");
-const fs = require("node:fs");
 const path = require("node:path");
+const fs = require("node:fs");
 
 global.noLyrics = JSON.stringify({
 	text: "No Lyrics Avaible",
@@ -23,13 +24,8 @@ global.noMedia = JSON.stringify({
 	tooltip: "none",
 });
 
-global.logLevels = {
-	debug: 4,
-	error: 3,
-	warn: 2,
-	info: 1,
-	none: 0,
-};
+global.logLevels = logLevels;
+global.avaibleSources = sources;
 
 global.configFolder =
 	process.env.CONFIG_FOLDER ||
@@ -91,20 +87,40 @@ for (const functionFile of functionFiles) {
 	global[functionName] = functionData;
 }
 
-global.global.currentIntervalType;
-global.fetchingMxmToken = false;
+global.LyricsManager = new SyncLyrics({
+	instrumentalLyricsIndicator: config.instrumentalLyricIndicator,
+	sources: config.sourceOrder,
+	logLevel: config.logLevel,
+	saveMusixmatchToken: (tokenData) => {
+		const tokenFile = path.join(global.configFolder, "musixmatchToken.json")
+
+		fs.writeFileSync(tokenFile, JSON.stringify(tokenData, null, 4))
+	},
+	getMusixmatchToken: () => {
+		const tokenFile = path.join(global.configFolder, "musixmatchToken.json")
+
+		if (!fs.existsSync(tokenFile)) return null;
+
+		const tokenFileContent = fs.readFileSync(tokenFile, 'utf-8')
+
+		try {
+			const tokenData = JSON.parse(tokenFileContent)
+
+			return tokenData
+		} catch(e) {
+			return null;
+		}
+	}
+})
+
+global.warnLog = LyricsManager.warnLog
+global.infoLog = LyricsManager.infoLog
+global.errorLog = LyricsManager.errorLog
+global.debugLog = LyricsManager.debugLog
+
 global.currentMarqueeIndex = 0;
-global.global.fetchingTrackId;
-global.lyricsCached = false;
 global.fetchingIcon = false;
-global.lastStoppedPlayer;
 global.playerOffset = 0;
-global.fetching = false;
-global.currentInterval;
-global.fetchingSource;
-global.currentTrackId;
-global.cachedLyrics;
-global.lyricsSource;
 
 if (!fs.existsSync(configFolder))
 	fs.mkdirSync(configFolder, {
@@ -124,8 +140,6 @@ fs.watchFile(configFile, () => {
 
 	infoLog("Using config:", config);
 });
-
-infoLog(`Using config folder: ${configFolder}`);
 
 if (['--help', '-h'].some(arg => process.argv.includes(arg))) {
 	outputLog(`\x1b[31;1mIMPORTANT: Requires playerctl
@@ -157,7 +171,15 @@ Envs:
 	
 		if (!metadata) process.exit(0);
 
-		const lyrics = await getLyrics(metadata);
+		const res = await LyricsManager.getLyrics({
+			track: metadata.track,
+			artist: metadata.artist,
+			album: metadata.album,
+			length: metadata.lengthMs,
+			lyricsType: ["lineSynced"]
+		})
+
+		const lyrics = res.lyrics.lineSynced.lyrics
 
 		if (!lyrics) {
 			infoLog("This song has no lyrics");
