@@ -171,15 +171,21 @@ Envs:
 	
 		if (!metadata) process.exit(0);
 
+		const lyricsType = ["--synced", "-sy"].some((arg) => process.argv.includes(arg)) ? "lineSynced" : "plain"
+
+		console.log(lyricsType)
+
 		const res = await LyricsManager.getLyrics({
 			track: metadata.track,
 			artist: metadata.artist,
 			album: metadata.album,
 			length: metadata.lengthMs,
-			lyricsType: ["lineSynced"]
+			lyricsType: [lyricsType]
 		})
 
-		const lyrics = res.lyrics.lineSynced.lyrics
+		const lyrics = res.lyrics[lyricsType].lyrics
+
+		console.log(lyrics)
 
 		if (!lyrics) {
 			infoLog("This song has no lyrics");
