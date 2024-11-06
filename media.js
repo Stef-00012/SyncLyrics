@@ -150,7 +150,7 @@ if (['--help', '-h'].some(arg => process.argv.includes(arg))) {
 \x1b[33m--volume-down=X \x1b[0m| \x1b[33m-vol-=X \x1b[0m: Decreases the volume by X%.
 \x1b[33m--volume-up=X   \x1b[0m| \x1b[33m-vol+=X \x1b[0m: Increases the volume by X%.
 \x1b[33m--play-toggle   \x1b[0m| \x1b[33m-pt     \x1b[0m: Toggle player's play-pause state.
-\x1b[33m--show-lyrics   \x1b[0m| \x1b[33m-sl     \x1b[0m: Saves song's lyrics in a file (/tmp/lyrics), saves in ~/Downloads/SyncLyrics/<song>.txt when ran with --save or -s.
+\x1b[33m--show-lyrics   \x1b[0m| \x1b[33m-sl     \x1b[0m: Saves song's plain lyrics in a file (/tmp/lyrics, saves in ~/Downloads/SyncLyrics/<song>.txt when ran with --save or -s - Saves song's synced lyrics when used with --synced or -sy).
 \x1b[33m--show-cover    \x1b[0m| \x1b[33m-sc     \x1b[0m: Saves song's icon in a file ($CONFIG_FOLDER/icon.png, saves in ~/Downloads/SyncLyrics/<song>.txt when ran with --save or -s).
 \x1b[33m--trackid       \x1b[0m| \x1b[33m-tid    \x1b[0m: Returns song's ID.
 \x1b[33m--artist        \x1b[0m| \x1b[33m-a      \x1b[0m: Returns song's artist.
