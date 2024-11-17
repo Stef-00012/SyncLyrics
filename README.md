@@ -68,6 +68,7 @@ The avaible options are:
 - `lyricsUpdateInterval` (Number): How often update the output returned by default (in milliseconds).
 - `dataUpdateInterval` (Number): How often update the output returned by the `--data` or `-d` parameter (in milliseconds).
 - `nameUpdateInterval` (Number): How often update the output returned by the `--name` or `-n` parameter (in milliseconds).
+- `dataLyricsDivider`: (String): Text to use in the output of `--name-lyrics`, `--artist-lyrics`, `--data-lyrics`, `-nl`, `-al` or `-dl` parameter to divide song metadata from the lyrics.
 - `marqueeMinLength` (Number): Minimum length before the output of `--data`, `-d`, `--name`, `-n`, `--artist` and `-a` becomes a marquee (Scrolling text).
 - `marqueeDivider` (String): Text to use in the marquee to divide start of the text from the end.
 - `defaultVolumeStep` (Number): The default step for volume increase/decrease.
