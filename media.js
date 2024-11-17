@@ -61,10 +61,13 @@ global.config = {
 	sourceOrder: ["musixmatch", "lrclib"],
 
 	instrumentalLyricIndicator: " ",
-	dataUpdateInterval: 1000,
+	artistLyricsUpdateInterval: 500,
+	dataLyricsUpdateInterval: 500,
+	nameLyricsUpdateInterval: 500,
 	artistUpdateInterval: 1000,
-	nameUpdateInterval: 1000,
 	lyricsUpdateInterval: 500,
+	dataUpdateInterval: 1000,
+	nameUpdateInterval: 1000,
 
 	marqueeMinLength: 20,
 	marqueeDivider: "  ",
@@ -147,10 +150,13 @@ if (['--help', '-h'].some(arg => process.argv.includes(arg))) {
 \x1b[32mUsage: synclyrics [-flags]
 
 \x1b[0mFlags:
+\x1b[33m--artist-lyrics \x1b[0m| \x1b[33m-al     \x1b[0m: Returns song's artist & lyrics together.
 \x1b[33m--volume-down=X \x1b[0m| \x1b[33m-vol-=X \x1b[0m: Decreases the volume by X%.
 \x1b[33m--volume-up=X   \x1b[0m| \x1b[33m-vol+=X \x1b[0m: Increases the volume by X%.
 \x1b[33m--play-toggle   \x1b[0m| \x1b[33m-pt     \x1b[0m: Toggle player's play-pause state.
 \x1b[33m--show-lyrics   \x1b[0m| \x1b[33m-sl     \x1b[0m: Saves song's plain lyrics in a file (/tmp/lyrics, saves in ~/Downloads/SyncLyrics/<song>.txt when ran with --save or -s - Saves song's synced lyrics when used with --synced or -sy).
+\x1b[33m--data-lyrics   \x1b[0m| \x1b[33m-dl     \x1b[0m: Returns song's artist, name & lyrics together.
+\x1b[33m--name-lyrics   \x1b[0m| \x1b[33m-nl     \x1b[0m: Returns song's name & lyrics together.
 \x1b[33m--show-cover    \x1b[0m| \x1b[33m-sc     \x1b[0m: Saves song's icon in a file ($CONFIG_FOLDER/icon.png, saves in ~/Downloads/SyncLyrics/<song>.txt when ran with --save or -s).
 \x1b[33m--trackid       \x1b[0m| \x1b[33m-tid    \x1b[0m: Returns song's ID.
 \x1b[33m--artist        \x1b[0m| \x1b[33m-a      \x1b[0m: Returns song's artist.
@@ -332,6 +338,39 @@ Envs:
 			global.currentInterval = setInterval(
 				returnData,
 				config.dataUpdateInterval || 1000,
+			);
+		}
+	}
+
+	if (["--data-lyrics", "-dl"].some(arg => process.argv.includes(arg))) {
+		if (!global.currentInterval) {
+			global.global.currentIntervalType = "data-lyrics";
+	
+			global.currentInterval = setInterval(
+				returnDataLyrics,
+				config.dataLyricsUpdateInterval || 500,
+			);
+		}
+	}
+
+	if (["--artist-lyrics", "-al"].some(arg => process.argv.includes(arg))) {
+		if (!global.currentInterval) {
+			global.global.currentIntervalType = "artist-lyrics";
+	
+			global.currentInterval = setInterval(
+				returnArtistLyrics,
+				config.artistLyricsUpdateInterval || 500,
+			);
+		}
+	}
+
+	if (["--name-lyrics", "-nl"].some(arg => process.argv.includes(arg))) {
+		if (!global.currentInterval) {
+			global.global.currentIntervalType = "name-lyrics";
+	
+			global.currentInterval = setInterval(
+				returnNameLyrics,
+				config.nameLyricsUpdateInterval || 500,
 			);
 		}
 	}

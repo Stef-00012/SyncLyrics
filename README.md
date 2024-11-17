@@ -22,10 +22,13 @@ Just clone this repository.
 
 ### Flags
 
+- `--artist-lyrics`, `-al`: Returns the song artist and lyrics.
 - `--volume-down=X`, `-vol-=X`: Decreases the player's volume by `X`%, or the `defaultVolumeStep` % config if X is not present.
 - `--volume-up=X`, `-vol+=X`: Increases the player's volume by `X`%, or the `defaultVolumeStep` % config if X is not present.
 - `--play-toggle`, `-pt`: Plays or pauses the player.
 - `--show-lyrics`, `-sl`: Saves the lyrics in a temporary file (`/tmp/lyrics.txt`) and opens the file (when combined with `--save` or `-s` it saves the lyrics in a permanent file, `~/Downloads/syncLyrics/<song_name>-<artist_name>.txt`).
+- `--data-lyrics`, `-dl`: Returns the Song name, artist and lyrics.
+- `--name-lyrics`, `-nl`: Returns the Song name and lyrics.
 - `--show-cover`, `-sc`: Opens the song's icon in your system default image viewer (when combined with `--save` or `-s` it saves the icon in a permanent file, `~/Downloads/syncLyrics/<song_name>-<artist_name>.png`).
 - `--trackid`, `-tid`: Returns the song ID (required for local lyrics).
 - `--artist`, `-a`: Returns the artist name. [^1]
@@ -59,6 +62,9 @@ The avaible options are:
 - `sourceOrder` (Array\<String>): The order in which the sources will be fetched (Removing a source from here means the lyrics will never be fetched from that source). [^3]
 - `instrumentalLyricIndicator` (String): The text to use when there is a music section without lyrics.
 - `artistUpdateInterval` (Number): How often update the output returned by the `--artist` or `-artist` parameter (in milliseconds).
+- `artistLyricsUpdateInterval` (Number): How often update the output returned by the `--artist-lyrics` or `-al` parameter (in milliseconds).
+- `dataLyricsUpdateInterval` (Number): How often update the output retuned by the `--data-lyrics` or `-dl` parameter (in milliseconds).
+- `nameLyricsUpdateInterval` (Number): How often update the output returned by the `--name-lyrics` or `-nl` parameter (in milliseconds).
 - `lyricsUpdateInterval` (Number): How often update the output returned by default (in milliseconds).
 - `dataUpdateInterval` (Number): How often update the output returned by the `--data` or `-d` parameter (in milliseconds).
 - `nameUpdateInterval` (Number): How often update the output returned by the `--name` or `-n` parameter (in milliseconds).
